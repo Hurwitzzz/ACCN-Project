@@ -122,6 +122,7 @@ void testReLU(const char * infile)
 		}
 		Tensor Z(Ref.size[0],Ref.size[1],Ref.size[2]);
 		ReLU(&X,&Z);
+		// printf("Ref.size= %d, %d, %d \n",Ref.size[0],Ref.size[1],Ref.size[2]);
 		compareTensors(&Z,&Ref, 1, 0.001);
 	}
 }
