@@ -130,6 +130,8 @@ int compareTensors(Tensor * y, Tensor * ref, int N, float limit){
 			for(int j =0; j < y[n].size[1]; j++){
 				for(int k =0; k < y[n].size[2];k++){
 					FLOAT diff = Fabs( my[j][k] -  mr[j][k]);
+					// printf("my Z[%d][%d][%d] = [%f]; ref[%d][%d][%d] = [%f]\n",
+					// 		i,j,k,my[j][k],i,j,k,mr[j][k]);
 					if(diff > limit){
 						printf("Tensors differ at: [%d][%d][%d] by %f \n",
 								i,j,k,diff);
