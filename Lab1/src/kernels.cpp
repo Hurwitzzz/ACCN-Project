@@ -13,7 +13,47 @@
  */
 void conv2d(Tensor * X, Tensor * W ,  Tensor * b, Tensor * Z)
 {
+    printf("W.size= %d, %d, %d, %d \n",W->size[0],W[0].size[0],W[0].size[1],W[0].size[2]);
+    printf("X.size= %d, %d, %d\n",X->size[0],X->size[1],X->size[2]);
+    printf("Z.size= %d, %d, %d\n",Z->size[0],Z->size[1],Z->size[2]);
+    printf("b.size= %d, %d, %d\n",b->size[0],b->size[1],b->size[2]);
 
+    printf("----------\n");
+
+    uint32_t z_width = Z->size[2];
+    uint32_t z_height = Z->size[1];
+    uint32_t z_channel = Z->size[0];
+
+    uint32_t xc = X->size[0];
+    // uint32_t wm = W[0].size[1];
+    // uint32_t wn = W[0].size[2];
+
+    for (uint32_t i=0; i<z_channel; i++)
+        {
+            
+            for (uint32_t j=0; j<z_height; j++)
+            {
+                // printf("j=%d \n",j);
+                for (uint32_t k=0; k<z_width; k++)
+                {
+                    // printf("k=%d \n",k);
+                    for (uint32_t c=0; c<xc; c++)
+                    {
+                        for (uint32_t p=0; p<W[i].size[1]; p++)
+                        {
+                            for (uint32_t q=0; q<W[i].size[2]; q++)
+                            {
+                                // printf("k=%d \n",k);
+                                Z->data[i][j][k] += X->data[c][j+p][k+q] * W[i].data[c][p][q];
+                                // Z->data[i][j][k] +=1;
+                            }
+                        }
+                    }
+                    Z->data[i][j][k] += b->data[0][0][i]; // Why not set b.size = channel, 1, 1 ?
+                }
+                
+            }
+        }
 }
 
 /*
@@ -23,8 +63,6 @@ void conv2d(Tensor * X, Tensor * W ,  Tensor * b, Tensor * Z)
  */
 void maxPool(Tensor * X, Tensor * Z)   // How about the odd width or height case?
 {   
-    uint32_t input_size = X->size[0] * X->size[1] * X->size[2];
-    uint32_t output_size = Z->size[0] * Z->size[1] * Z->size[2];
     uint32_t z_width = Z->size[2];
     uint32_t z_height = Z->size[1];
     uint32_t z_channel = Z->size[0];
