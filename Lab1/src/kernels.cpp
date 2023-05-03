@@ -2,6 +2,8 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include <algorithm>
+
 /* 
  * Applies a 2d convolution on a 3D X using W: Z= W (conv) X + b
  * Tensor * X:		Input Tensor
@@ -19,8 +21,27 @@ void conv2d(Tensor * X, Tensor * W ,  Tensor * b, Tensor * Z)
  * Tensor * X:	input Tensor
  * Tensor * Z:	output Tensor
  */
-void maxPool(Tensor * X, Tensor * Z)
-{
+void maxPool(Tensor * X, Tensor * Z)   // How about the odd width or height case?
+{   
+    uint32_t input_size = X->size[0] * X->size[1] * X->size[2];
+    uint32_t output_size = Z->size[0] * Z->size[1] * Z->size[2];
+    uint32_t z_width = Z->size[2];
+    uint32_t z_height = Z->size[1];
+    uint32_t z_channel = Z->size[0];
+    
+    for (uint32_t k=0; k<z_channel; k++)
+    {
+        for (uint32_t i=0; i<z_height; i++)
+        {
+            for (uint32_t j=0; j<z_width; j++)
+            {
+                Z->data[k][i][j] = std::max({
+                    X->data[k][2*i][2*j], X->data[k][2*i][2*j+1],
+                    X->data[k][2*i+1][2*j], X->data[k][2*i+1][2*j+1]});
+            }
+        }
+    }
+    
 }
 
 
