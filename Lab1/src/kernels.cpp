@@ -1,6 +1,7 @@
 #include "kernels.h"
 #include <vector>
 #include <iostream>
+#include <cmath>
 /* 
  * Applies a 2d convolution on a 3D X using W: Z= W (conv) X + b
  * Tensor * X:		Input Tensor
@@ -77,6 +78,21 @@ void ReLU(Tensor * X , Tensor * Z)
  */
 void Softmax(Tensor * X, Tensor * Z)
 {
-    printf("X.size= %d, %d, %d \n",X->size[0],X->size[1],X->size[2]);
-    printf("Z.size= %d, %d, %d \n",Z->size[0],Z->size[1],Z->size[2]);
+    uint32_t input_size = X->size[0] * X->size[1] * X->size[2];
+    uint32_t output_size = Z->size[0] * Z->size[1] * Z->size[2];
+
+    if (input_size != output_size)
+    {
+        printf("The input size and output size do not match");
+    }
+    // calculate the sum(exp(x_j))
+    float mysum = 0;
+    for (uint32_t i=0; i<input_size; i++)
+    {
+        mysum += exp(X->data[0][0][i]);  // Why can't I use X[0][0][i] here? We've redefined the operator.
+    }
+    for (uint32_t i=0; i<input_size; i++)
+    {
+        Z->data[0][0][i] = X->data[0][0][i] / mysum;
+    }
 }
