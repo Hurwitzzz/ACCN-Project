@@ -93,6 +93,6 @@ void Softmax(Tensor * X, Tensor * Z)
     }
     for (uint32_t i=0; i<input_size; i++)
     {
-        Z->data[0][0][i] = X->data[0][0][i] / mysum;
+        Z->data[0][0][i] = exp(X->data[0][0][i]) / mysum;
     }
 }
