@@ -36,6 +36,7 @@ void testConv(const char * infile)
 		if(W == NULL)
 			break;
 		Tensor Z(R.size[0],R.size[1],R.size[2]);
+		Z.randomize(-1,1);
 		conv2d(&X,W,&B,&Z);
 		compareTensors(&Z,&R,1,0.001);
 		delete [] W;
@@ -122,7 +123,6 @@ void testReLU(const char * infile)
 		}
 		Tensor Z(Ref.size[0],Ref.size[1],Ref.size[2]);
 		ReLU(&X,&Z);
-		// printf("Ref.size= %d, %d, %d \n",Ref.size[0],Ref.size[1],Ref.size[2]);
 		compareTensors(&Z,&Ref, 1, 0.001);
 	}
 }
