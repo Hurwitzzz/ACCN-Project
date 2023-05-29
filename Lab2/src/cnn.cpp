@@ -86,7 +86,10 @@ Tensor * CNN::inference(Tensor * input)
         switch(lay.type){
             case Layer_Type::Conv:
                 {
-					printf("Pad = %d ,Kernel_width = %d, input_channels = %d\n",lay.pad, lay.kernel_width, lay.input_channels);
+					// printf("Pad = %d ,Kernel_width = %d, input_channels = %d\n",lay.pad, lay.kernel_width, lay.input_channels);
+					if(lay.pad != 0){
+						X = padTensor(X, lay.pad);
+					}
                     auto start = mtick();
                     Tensor * W = lay.W;
                     Tensor * B = lay.B;
