@@ -1,4 +1,5 @@
 #include "conv.h"
+#include <math.h>
 
 /*----------------------------- Helper Functions -------------------------------------*/
 /*
@@ -89,8 +90,7 @@ Question:
  */
 Tensor * winoWeights(Tensor * W, int output_channels)
 {
-	// Note: According to the 97 line in lab3.cpp, W is one of the weight tensors, but not all of them.
-	// No, above thing is not true. We should see line 145 in lab3.cpp.
+
 	printf("W.shape: %d %d %d\n", W->size[0], W->size[1], W->size[2]);
 	printf("output_channels: %d\n", output_channels);
 	int k_size = W->size[1];
@@ -98,24 +98,33 @@ Tensor * winoWeights(Tensor * W, int output_channels)
     if(wino == NULL)
         return NULL;
     int tile_size = wino->tile_size;
+	int input_channels = W->size[0];
 
-	// Each weight tensor may have multiple channels.
-    Tensor * U = new Tensor (W->size[0], tile_size, tile_size);
-	// for each weight channel
-	for (int wc = 0; wc < W->size[0]; wc++) {
-		for (int i = 0; i < tile_size; i++) {
-			for (int j = 0; j < tile_size; j++) {
-				for (int k = 0; k < k_size; k++) {
-					for (int l = 0; l < k_size; l++) {
-						(*U)[wc][i][j] += wino->G[i][k] * (*W)[wc][k][l] * wino->G[j][l];
+	// Create a new array to store the transformed weights and allocate memory for it.
+	Tensor * U = new Tensor[output_channels];
+	for (int i = 0; i < output_channels; i++) {
+		U[i].allocate (input_channels, tile_size, tile_size);  // Use dot(.) rather than arrow(->) because U[i] is a tensor, not a pointer.
+	}
+	// for each weight tensor
+	for (int oc = 0; oc < output_channels; oc++) {
+		// for each weight channel
+		for (int wc = 0; wc < input_channels; wc++) {
+			// for each row in the converted weight channel
+			for (int i = 0; i < tile_size; i++) {
+				// for each column in the converted weight channel
+				for (int j = 0; j < tile_size; j++) {
+					// for each row in the kernel
+					for (int k = 0; k < k_size; k++) {
+						// for each column in the kernel
+						for (int l = 0; l < k_size; l++) {
+							U[oc][wc][i][j] += wino->G[i][k] * W[oc].data[wc][k][l] * wino->G[j][l];
+						}
 					}
 				}
 			}
 		}
 	}
-        
-    return U;
-	
+	return U;	
 }
 
 /*
@@ -135,61 +144,56 @@ Question:
 
 void convWinograd(Tensor * X, Tensor * U_wino , Tensor * B, Tensor * Z, int k_size)
 {
-	// /*
-	// Note: According to lab3.cpp:
-	// for(int i =0; i < N ; i++){
-	// 		convWinograd(&(X[i]),U[i],&(B[i]),&Z,W->size[2]);}
-	
-
-	// */
-	// const WINOGRAD_STRUCT * wino = getWino(k_size);
-    // if(wino == NULL)
-    //     return;
-    // int tile_size = wino->tile_size;
-    // int output_channels = Z->size[0];
-    // int input_channels = X->size[0];
-    // int input_width = X->size[1];
-    // int output_width = Z->size[1];
-    // int num_tiles = output_width / (tile_size - k_size + 1);
-    // // Convert the input to the winograd domain
-    // Tensor * T = new Tensor (input_channels, tile_size, tile_size);
-	// for (int t = 0; t < num_tiles; t++) {
-	// 	for (int c = 0; c < input_channels; c++){
-	// 		for (int i = 0; i < tile_size; i++) {
-	// 			for (int j = 0; j < tile_size; j++) {
-	// 				for (int k = 0; k < tile_size; k++) {
-	// 					for (int l = 0; l < tile_size; l++) {
-	// 						// (*T)[c][i][j] += wino->Bt[i][k] * (*X)[c][k+l][l];
-	// 						(*T)[c][i + (tile_size - k_size +1) * t][j + (tile_size - k_size +1) * t]+= wino->Bt[i][k] * (*X)[c][k+ (tile_size - k_size +1) * t][l+ (tile_size - k_size +1) * t] * wino->Bt[j][l];
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
-    // // Convolve the input tiles with the transformed weights
-    // for (int t = 0; t < num_tiles; t++) {
-    //     Tensor * Z_tile = new Tensor (output_channels, tile_size, tile_size);
-    //     for (int c = 0; c < output_channels; c++) {
-    //         for (int i = 0; i < tile_size; i++) {
-    //             for (int j = 0; j < tile_size; j++) {
-    //                 for (int k = 0; k < tile_size; k++) {
-    //                     (*Z_tile)[c][i][j] += (*U_wino)[c][k][j] * (*T)[k][i][t*tile_size+k];
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     // Add bias and store the output tile
-    //     for (int c = 0; c < output_channels; c++) {
-    //         for (int i = 0; i < tile_size; i++) {
-    //             for (int j = 0; j < tile_size; j++) {
-    //                 (*Z)[c][t*tile_size+i][j] = (*Z_tile)[c][i][j] + (*B)[c][0][0];
-    //             }
-    //         }
-    //     }
-    //     delete Z_tile;
-    // }
-    // delete T;
+	const WINOGRAD_STRUCT * wino = getWino(k_size);
+    if(wino == NULL)
+        return;
+    int tile_size = wino->tile_size;
+    int output_channels = Z->size[0];
+    int input_channels = X->size[0];
+    int input_width = X->size[2];
+    int output_width = Z->size[2];
+    int tile_stride = wino->tile_stride;
+    int num_tiles = ceil((input_width - tile_stride)/(tile_size - tile_stride)); // each row or col
+    // Convert the input to the winograd domain
+    Tensor * T = new Tensor (input_channels, tile_size * num_tiles, tile_size * num_tiles);
+    for (int c = 0; c < input_channels; c++) {
+        for (int t_row = 0; t_row < num_tiles; t_row++){
+            for (int t_col = 0; t_col < num_tiles; t_col++){
+                for (int i = 0; i < tile_size; i++) {
+                    for (int j = 0; j < tile_size; j++) {
+                        for (int k = 0; k < tile_size; k++) {
+                            for (int l = 0; l < tile_size; l++) {
+                                T->data[c][i + tile_size * t_row][j + tile_size * t_col]+= wino->Bt[i][k] * X->data[c][k+ (tile_size - k_size +1) * t_row][l+ (tile_size - k_size +1) * t_col] * wino->Bt[j][l];
+                            }
+                        }
+                    }
+                }
+            }
+		}
+	}
+    // Convolve the input tiles with the transformed weights
+    for (int t = 0; t < num_tiles; t++) {
+        Tensor * Z_tile = new Tensor (output_channels, tile_size, tile_size);
+        for (int c = 0; c < output_channels; c++) {
+            for (int i = 0; i < tile_size; i++) {
+                for (int j = 0; j < tile_size; j++) {
+                    for (int k = 0; k < tile_size; k++) {
+                        (*Z_tile)[c][i][j] += (*U_wino)[c][k][j] * (*T)[k][i][t*tile_size+k];
+                    }
+                }
+            }
+        }
+        // Add bias and store the output tile
+        for (int c = 0; c < output_channels; c++) {
+            for (int i = 0; i < tile_size; i++) {
+                for (int j = 0; j < tile_size; j++) {
+                    (*Z)[c][t*tile_size+i][j] = (*Z_tile)[c][i][j] + (*B)[c][0][0];
+                }
+            }
+        }
+        delete Z_tile;
+    }
+    delete T;
 }
 
 
