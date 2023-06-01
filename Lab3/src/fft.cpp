@@ -35,20 +35,127 @@ C_Tensor::~C_Tensor()
 	}
 }
 
-void fft(C_FLOAT * x_in, C_FLOAT * X_out, int N)
-{
+void bit_reverse_copy(C_FLOAT * x_in, C_FLOAT * X_out, int N) {
+    for (int i = 0; i < N; i++) {
+        unsigned int reversed = 0;
+        unsigned int temp = i;
+
+        // Calculate the bit-reversed index
+        for (int j = 0; j < log2(N); j++) {
+            unsigned int lsb = temp & 1;
+            reversed = (reversed << 1) | lsb;
+            temp = temp >> 1;
+        }
+
+        // Copy the element to the bit-reversed position
+        X_out[reversed] = x_in[i];
+    }
 }
 
-void ifft(C_FLOAT * x_in, C_FLOAT * X_out, int N)
-{
+
+void fft(C_FLOAT *x_in, C_FLOAT *X_out, int N) {
+    bit_reverse_copy(x_in, X_out, N);
+    
+    for (int s = 1; (1 << s) <= N; s++) {
+        int m = 1 << s;
+        C_FLOAT wm = std::exp(C_FLOAT(0, -2.0f * M_PI / m));
+        for (int k = 0; k < N; k += m) {
+            C_FLOAT w = 1;
+            for (int j = 0; j < m / 2; j++) {
+                C_FLOAT t = w * X_out[k + j + m / 2];
+                C_FLOAT u = X_out[k + j];
+                X_out[k + j] = u + t;
+                X_out[k + j + m / 2] = u - t;
+                w *= wm;
+            }
+        }
+    }
 }
 
-void fft2d(C_Tensor * x_in, C_Tensor * X_f)
-{
+void ifft(C_FLOAT *x_in, C_FLOAT *X_out, int N) {
+    bit_reverse_copy(x_in, X_out, N);
+
+    for (int s = 1; (1 << s) <= N; s++) {
+        int m = 1 << s;
+        C_FLOAT wm = std::exp(C_FLOAT(0, 2.0f * M_PI / m));
+        for (int k = 0; k < N; k += m) {
+            C_FLOAT w = 1;
+            for (int j = 0; j < m / 2; j++) {
+                C_FLOAT t = w * X_out[k + j + m / 2];
+                C_FLOAT u = X_out[k + j];
+                X_out[k + j] = u + t;
+                X_out[k + j + m / 2] = u - t;
+                w *= wm;
+            }
+        }
+    }
+    
+    for (int i = 0; i < N; ++i) {
+        X_out[i] /= N;
+    }
 }
 
-void ifft2d(C_Tensor * X_f , C_Tensor * x_out)
-{
+void fft2d(C_Tensor *x_in, C_Tensor *X_out) {
+    C_FLOAT *temp = new C_FLOAT[x_in->size[2]];
+    
+    for (int i = 0; i < x_in->size[0]; ++i) {
+        for (int j = 0; j < x_in->size[1]; ++j) {
+            fft(x_in->data[i][j], X_out->data[i][j], x_in->size[2]);
+        }
+    }
+
+    for (int i = 0; i < x_in->size[0]; ++i) {
+        for (int j = 0; j < x_in->size[2]; ++j) {
+            for (int k = 0; k < x_in->size[1]; ++k) {
+                temp[k] = X_out->data[k][i][j];
+            }
+            
+            fft(temp, temp, x_in->size[1]);
+            
+            for (int k = 0; k < x_in->size[1]; ++k) {
+                X_out->data[k][i][j] = temp[k];
+            }
+        }
+    }
+
+    delete [] temp;
 }
+
+void ifft2d(C_Tensor *X_in, C_Tensor *x_out) {
+    C_FLOAT *temp = new C_FLOAT[X_in->size[2]];
+
+    for (int i = 0; i < X_in->size[0]; ++i) {
+        for (int j = 0; j < X_in->size[1]; ++j) {
+            ifft(X_in->data[i][j], x_out->data[i][j], X_in->size[2]);
+        }
+    }
+
+    for (int i = 0; i < X_in->size[0]; ++i) {
+        for (int j = 0; j < X_in->size[2]; ++j) {
+            for (int k = 0; k < X_in->size[1]; ++k) {
+                temp[k] = x_out->data[k][i][j];
+            }
+            
+            ifft(temp, temp, X_in->size[1]);
+            
+            for (int k = 0; k < X_in->size[1]; ++k) {
+                x_out->data[k][i][j] = temp[k];
+            }
+        }
+    }
+
+    delete [] temp;
+}
+
+
+// void fft2d(C_Tensor * x_in, C_Tensor * X_f)
+// {
+	
+// }
+
+// void ifft2d(C_Tensor * X_f , C_Tensor * x_out)
+// {
+	
+// }
 
 

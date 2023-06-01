@@ -283,6 +283,38 @@ void convWinograd(Tensor * X, Tensor * U_wino , Tensor * B, Tensor * Z, int k_si
  */
 C_Tensor * fftWeights(Tensor * W, int output_channels)
 {
+    
+    
+    // int k_size = W->size[1];
+    // const FFT_STRUCT * fft = getFFT(k_size);
+    // if(fft == NULL)
+    //     return NULL;
+    // int input_channels = W->size[0];
+
+    // // Create a new array to store the transformed weights and allocate memory for it.
+    // C_Tensor * U_fft = new C_Tensor[output_channels];
+    // for (int i = 0; i < output_channels; i++) {
+    //     U_fft[i].allocate(input_channels, k_size, k_size);
+    // }
+
+    // // For each weight tensor
+    // for (int oc = 0; oc < output_channels; oc++) {
+    //     // For each weight channel
+    //     for (int wc = 0; wc < input_channels; wc++) {
+    //         // Apply 2D FFT to the weight channel
+    //         C_Tensor X_f(k_size, k_size, 2);
+    //         fft2d(&(W->data[wc][0][0]), &X_f);
+    //         // Store the transformed weights in U_fft
+    //         for (int i = 0; i < k_size; i++) {
+    //             for (int j = 0; j < k_size; j++) {
+    //                 U_fft[oc].data[wc][i][j][0] = X_f.data[i][j][0];
+    //                 U_fft[oc].data[wc][i][j][1] = X_f.data[i][j][1];
+    //             }
+    //         }
+    //     }
+    // }
+
+    // return U_fft;
 }
 
 

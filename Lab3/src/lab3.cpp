@@ -3,6 +3,8 @@
 #include "time.h"
 #include "conv.h"
 #include <cstdio>
+#include "fft.h"
+#include <iostream>
 
 
 
@@ -133,6 +135,16 @@ void testConv(const char * infile,int select)
 		if(select == 0)
 			convBasic(&X,W,&B,&Z);
 		else if(select == 1){
+			
+			/* test the bit_reverse_copy funtion*/
+			// C_FLOAT x_in[] = {C_FLOAT(0), C_FLOAT(1), C_FLOAT(2), C_FLOAT(3), C_FLOAT(4), C_FLOAT(5), C_FLOAT(6), C_FLOAT(7)};
+			// C_FLOAT x_out[8];
+			// int N = 8;
+			// bit_reverse_copy(x_in,x_out,N);
+			// for (int i = 0; i < 8; ++i) {
+			// 	std::cout << "Element " << i << ": " << x_out[i].real() << " + " << x_out[i].imag() << "i" << std::endl;
+			// }
+	
 			C_Tensor * U = fftWeights(W,Z.size[0]);
 			convFFT(&(X),U,&(B),&(Z),W->size[2]);
 			delete [] U;
