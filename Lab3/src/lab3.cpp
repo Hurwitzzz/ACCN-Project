@@ -87,7 +87,7 @@ void timeConv(uint32_t input_channels, uint32_t input_width, uint32_t kernel_siz
 		}
 		total_time = mtock(start);
 		for(int i =0 ; i < N; i++)
-			delete U[i];
+			delete [] U[i];
 		delete [] U;
 	}
 	else if(select == 2){
@@ -102,7 +102,7 @@ void timeConv(uint32_t input_channels, uint32_t input_width, uint32_t kernel_siz
 		}
 		total_time = mtock(start);
 		for(int i =0 ; i < N ; i++)
-			delete U[i];
+			delete [] U[i];
 		delete [] U;
 	}
 	else{
@@ -123,7 +123,6 @@ void testConv(const char * infile,int select)
 	printf("Testing Convolutional Layer...\n");
 	while(1){
 		Tensor * W = readConv(&X,&R,&B,f);
-		printf("W.shape: %d %d %d\n", W->size[0], W->size[1], W->size[2]);
 		if(W == NULL)
 			break;
 		Tensor Z(R.size[0],R.size[1],R.size[2]);
@@ -136,14 +135,14 @@ void testConv(const char * infile,int select)
 		else if(select == 1){
 			C_Tensor * U = fftWeights(W,Z.size[0]);
 			convFFT(&(X),U,&(B),&(Z),W->size[2]);
-			delete U;
+			delete [] U;
 		}
 		else if(select == 2){
 			printf("Winograd not implemented yet!\n");
 			Tensor * U = winoWeights(W,R.size[0]);
 
 			convWinograd(&X,U,&B,&Z,W->size[2]);
-			delete U;
+			delete [] U;
 		}
 		else
 			printf("Not implemented %d!\n",select);

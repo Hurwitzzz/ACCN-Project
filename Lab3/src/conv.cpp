@@ -90,15 +90,24 @@ Question:
  */
 Tensor * winoWeights(Tensor * W, int output_channels)
 {
-
-	printf("W.shape: %d %d %d\n", W->size[0], W->size[1], W->size[2]);
-	printf("output_channels: %d\n", output_channels);
 	int k_size = W->size[1];
     const WINOGRAD_STRUCT * wino = getWino(k_size);
     if(wino == NULL)
         return NULL;
     int tile_size = wino->tile_size;
 	int input_channels = W->size[0];
+
+    // // Print out all elements in W
+    // for (int i = 0; i < input_channels; i++) {
+    //     for (int j = 0; j < k_size; j++) {
+    //         for (int k = 0; k < k_size; k++) {
+    //             printf("%f ", W->data[i][j][k]);
+    //         }
+    //         printf("\n");
+    //     }
+    //     printf("\n");
+    // }
+
 
 	// Create a new array to store the transformed weights and allocate memory for it.
 	Tensor * U = new Tensor[output_channels];
@@ -117,7 +126,7 @@ Tensor * winoWeights(Tensor * W, int output_channels)
 					for (int k = 0; k < k_size; k++) {
 						// for each column in the kernel
 						for (int l = 0; l < k_size; l++) {
-							U[oc][wc][i][j] += wino->G[i][k] * W[oc].data[wc][k][l] * wino->G[j][l];
+							U[oc].data[wc][i][j] += wino->G[i][k] * W[oc].data[wc][k][l] * wino->G[j][l];
 						}
 					}
 				}
@@ -144,7 +153,11 @@ Question:
 
 void convWinograd(Tensor * X, Tensor * U_wino , Tensor * B, Tensor * Z, int k_size)
 {
-	const WINOGRAD_STRUCT * wino = getWino(k_size);
+    // print *B.shape
+    printf("U_wino.shape: %d %d %d\n", U_wino->size[0], U_wino->size[1], U_wino->size[2]);
+    // printf("B.shape: %d %d %d\n", B->size[0], B->size[1], B->size[2]); // shape = (1,1,output_channel). It seems that for each output feature map, there is only one number as bias.
+	printf("Z.size= %d, %d, %d\n",Z->size[0],Z->size[1],Z->size[2]);
+    const WINOGRAD_STRUCT * wino = getWino(k_size);
     if(wino == NULL)
         return;
     int tile_size = wino->tile_size;
@@ -153,45 +166,107 @@ void convWinograd(Tensor * X, Tensor * U_wino , Tensor * B, Tensor * Z, int k_si
     int input_width = X->size[2];
     int output_width = Z->size[2];
     int tile_stride = wino->tile_stride;
-    int num_tiles = ceil((input_width - tile_stride)/(tile_size - tile_stride)); // each row or col
+    int num_tiles = ceil(1.0*(input_width - tile_size)/tile_stride + 1); // each row or col
+    printf("num_tiles: %d\n", num_tiles);
+
+
+    uint32_t z_width = Z->size[2];
+    uint32_t z_height = Z->size[1];
+    uint32_t z_channel = Z->size[0];
+
+    // initialize output tensor to zero
+    for (uint32_t i = 0; i < z_channel; i++) {
+        for (uint32_t j = 0; j < z_height; j++) {
+            for (uint32_t k = 0; k < z_width; k++) {
+                Z->data[i][j][k] = 0;
+            }
+        }
+    }
+
     // Convert the input to the winograd domain
     Tensor * T = new Tensor (input_channels, tile_size * num_tiles, tile_size * num_tiles);
-    for (int c = 0; c < input_channels; c++) {
-        for (int t_row = 0; t_row < num_tiles; t_row++){
-            for (int t_col = 0; t_col < num_tiles; t_col++){
-                for (int i = 0; i < tile_size; i++) {
-                    for (int j = 0; j < tile_size; j++) {
-                        for (int k = 0; k < tile_size; k++) {
-                            for (int l = 0; l < tile_size; l++) {
-                                T->data[c][i + tile_size * t_row][j + tile_size * t_col]+= wino->Bt[i][k] * X->data[c][k+ (tile_size - k_size +1) * t_row][l+ (tile_size - k_size +1) * t_col] * wino->Bt[j][l];
+    // If the input size is not divisible by the tile size, we need to pad the input with zeros
+    if (num_tiles != (input_width - tile_size)/tile_stride + 1){
+        for (int c = 0; c < input_channels; c++) {
+            for (int t_row = 0; t_row < num_tiles; t_row++){
+                for (int t_col = 0; t_col < num_tiles; t_col++){
+                    for (int i = 0; i < tile_size; i++) {
+                        for (int j = 0; j < tile_size; j++) {
+                            for (int k = 0; k < tile_size; k++) {
+                                for (int l = 0; l < tile_size; l++) {
+                                    if (k+ (tile_size - k_size +1) * t_row < input_width && l+ (tile_size - k_size +1) * t_col < input_width){
+                                        T->data[c][i + tile_size * t_row][j + tile_size * t_col]+= wino->Bt[i][k] * X->data[c][k+ (tile_size - k_size +1) * t_row][l+ (tile_size - k_size +1) * t_col] * wino->Bt[j][l];
+                                    }
+                                    else {
+                                        T->data[c][i + tile_size * t_row][j + tile_size * t_col]+= wino->Bt[i][k] * 0 * wino->Bt[j][l];
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
-		}
-	}
-    // Convolve the input tiles with the transformed weights
-    for (int t = 0; t < num_tiles; t++) {
-        Tensor * Z_tile = new Tensor (output_channels, tile_size, tile_size);
-        for (int c = 0; c < output_channels; c++) {
-            for (int i = 0; i < tile_size; i++) {
-                for (int j = 0; j < tile_size; j++) {
-                    for (int k = 0; k < tile_size; k++) {
-                        (*Z_tile)[c][i][j] += (*U_wino)[c][k][j] * (*T)[k][i][t*tile_size+k];
+	    }
+    }
+    // If the input size is divisible by the tile size, we don't need to pad the input with zeros
+    else {
+        for (int c = 0; c < input_channels; c++) {
+            for (int t_row = 0; t_row < num_tiles; t_row++){
+                for (int t_col = 0; t_col < num_tiles; t_col++){
+                    for (int i = 0; i < tile_size; i++) {
+                        for (int j = 0; j < tile_size; j++) {
+                            for (int k = 0; k < tile_size; k++) {
+                                for (int l = 0; l < tile_size; l++) {
+                                    T->data[c][i + tile_size * t_row][j + tile_size * t_col]+= wino->Bt[i][k] * X->data[c][k+ (tile_size - k_size +1) * t_row][l+ (tile_size - k_size +1) * t_col] * wino->Bt[j][l];
+                                }
+                            }
+                        }
                     }
                 }
             }
-        }
-        // Add bias and store the output tile
-        for (int c = 0; c < output_channels; c++) {
-            for (int i = 0; i < tile_size; i++) {
-                for (int j = 0; j < tile_size; j++) {
-                    (*Z)[c][t*tile_size+i][j] = (*Z_tile)[c][i][j] + (*B)[c][0][0];
+	    }
+    }
+    
+
+
+    // Convolution in the winograd domain
+    // for each weight tensor
+    for (int w = 0; w < output_channels; w++){
+        // for each tile in row
+        for (int t_row = 0; t_row < num_tiles; t_row++){
+            for (int t_col = 0; t_col < num_tiles; t_col++){
+                // eliment-wise multi T with weight, then add up all channels 
+                // Initiate m for every tile. m is the output of one tile and one weight tensor, channels are added up, include Bias
+                Tensor * m = new Tensor (1, tile_size, tile_size);
+                // for each input channel, add up
+                for (int ic = 0; ic < input_channels; ic++){
+                    // for each row in tile
+                    for (int i = 0; i < tile_size; i++){
+                        // for each col in tile
+                        for (int j = 0; j < tile_size; j++){
+                            // eliment-wise multi, Bias
+                            // printf("i: %d, j: %d, t_row: %d, t_col: %d, w: %d, ic: %d\n", i, j, t_row, t_col, w, ic);
+                            m->data[0][i][j] += T->data[ic][i + tile_size * t_row][j + tile_size * t_col] * U_wino[w].data[ic][i][j];
+                        }
+                    }
                 }
+                // convert m from winograd domain back, add the bias, and then allocate to Z
+                for (int i = 0; i < wino->out_size; i++){
+                    for (int j = 0; j < wino->out_size; j++){
+                        if (i + wino->out_size * t_row < z_height && j + wino->out_size * t_col < z_width){
+                            for (int k =0; k < tile_size; k++){
+                                for (int l = 0; l < tile_size; l++){
+                                    // printf("w: %d, i: %d, j: %d, k: %d, l: %d\n", w, i, j, k, l);
+                                    Z->data[w][i + wino->out_size * t_row][j + wino->out_size * t_col] += wino->At[i][k] * m->data[0][k][l] * wino->At[j][l];
+                                }
+                            }
+                            Z->data[w][i + wino->out_size * t_row][j + wino->out_size * t_col] += B->data[0][0][w];
+                        }
+                    }
+                }
+                delete m;
             }
         }
-        delete Z_tile;
     }
     delete T;
 }
@@ -230,28 +305,55 @@ void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B,
 /* Copy your basic function in here! */
 void convBasic(Tensor * X, Tensor * W ,  Tensor * b, Tensor * Z)
 {
-	// int output_channels = Z->size[0];
-	// int input_channels = X->size[0];
-	// int input_width = X->size[1];
-	// int input_height = X->size[2];
-	// int output_width = Z->size[1];
-	// int output_height = Z->size[2];
-	// int k_size = W->size[1];
-	// int stride = 1;
-	// int pad = 0;
-	// int num_tiles = output_width / (k_size - 1);
-	// for (int t = 0; t < num_tiles; t++) {
-	// 	for (int c = 0; c < output_channels; c++) {
-	// 		for (int i = 0; i < k_size; i++) {
-	// 			for (int j = 0; j < k_size; j++) {
-	// 				for (int k = 0; k < input_channels; k++) {
-	// 					for (int l = 0; l < k_size; l++) {
-	// 						(*Z)[c][t * (k_size - 1) + i][t * (k_size - 1) + j] += (*W)[c][k][i][j] * (*X)[k][t * (k_size - 1) + i][t * (k_size - 1) + j];
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 		(*Z)[c][t * (k_size - 1) + i][t * (k_size - 1) + j] += (*b)[c][0][0];
-	// 	}
-	// }
+	// printf("W.size= %d, %d, %d, %d \n",W->size[0],W[0].size[0],W[0].size[1],W[0].size[2]);
+    printf("number of weight tensors = %d, number of output channel = %d \n",W->size[0], Z->size[0]);
+    // printf("X.size= %d, %d, %d\n",X->size[0],X->size[1],X->size[2]);
+    // printf("Z.size= %d, %d, %d\n",Z->size[0],Z->size[1],Z->size[2]);
+    printf("b.size= %d, %d, %d\n",b->size[0],b->size[1],b->size[2]);
+
+    // printf("----------\n");
+
+    uint32_t z_width = Z->size[2];
+    uint32_t z_height = Z->size[1];
+    uint32_t z_channel = Z->size[0];
+
+    uint32_t xc = X->size[0];
+    // uint32_t wm = W[0].size[1];
+    // uint32_t wn = W[0].size[2];
+
+    // initialize output tensor to zero
+    for (uint32_t i = 0; i < z_channel; i++) {
+        for (uint32_t j = 0; j < z_height; j++) {
+            for (uint32_t k = 0; k < z_width; k++) {
+                Z->data[i][j][k] = 0;
+            }
+        }
+    }
+
+    for (uint32_t i=0; i<z_channel; i++)
+        {
+            
+            for (uint32_t j=0; j<z_height; j++)
+            {
+                // printf("j=%d \n",j);
+                for (uint32_t k=0; k<z_width; k++)
+                {
+                    // printf("k=%d \n",k);
+                    for (uint32_t c=0; c<xc; c++)
+                    {
+                        for (uint32_t p=0; p<W[i].size[1]; p++)
+                        {
+                            for (uint32_t q=0; q<W[i].size[2]; q++)
+                            {
+                                // printf("k=%d \n",k);
+                                Z->data[i][j][k] += X->data[c][j+p][k+q] * W[i].data[c][p][q];
+                                // Z->data[i][j][k] +=1;
+                            }
+                        }
+                    }
+                    Z->data[i][j][k] += b->data[0][0][i]; 
+                }
+                
+            }
+        }
 }
