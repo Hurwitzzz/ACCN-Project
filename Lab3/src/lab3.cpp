@@ -135,7 +135,7 @@ void testConv(const char * infile,int select)
 		if(select == 0)
 			convBasic(&X,W,&B,&Z);
 		else if(select == 1){
-			
+
 			/* test the bit_reverse_copy funtion*/
 			// C_FLOAT x_in[] = {C_FLOAT(0), C_FLOAT(1), C_FLOAT(2), C_FLOAT(3), C_FLOAT(4), C_FLOAT(5), C_FLOAT(6), C_FLOAT(7)};
 			// C_FLOAT x_out[8];
@@ -144,10 +144,28 @@ void testConv(const char * infile,int select)
 			// for (int i = 0; i < 8; ++i) {
 			// 	std::cout << "Element " << i << ": " << x_out[i].real() << " + " << x_out[i].imag() << "i" << std::endl;
 			// }
-	
+
+			// // print out the elements of the first channel of the second weight tensor
+			// for (int i = 0; i < 2; ++i){
+			// 	for (int j = 0; j < W[i].size[1]; ++j) {
+			// 	for (int k = 0; k < W[i].size[2]; ++k) {
+			// 		std::cout << "Element " << i << ", " << j << ", " << k << ": " << W[i].data[0][j][k]<< std::endl;
+			// 	}
+			// }
+			// }
+			
+			// C_Tensor * W_out = new C_Tensor[2];
+			// flip_Matrix(W,W_out,0);
+			// //print out the elements of the first channel of the first weight tensor after flip
+			// for (int j = 0; j < W_out->size[1]; ++j) {
+			// 	for (int k = 0; k < W_out->size[2]; ++k) {
+			// 		std::cout << "W_out Element " << "0" << ", " << j << ", " << k << ": " << W_out->data[0][j][k]<< std::endl;
+			// 	}
+			// }
+
 			C_Tensor * U = fftWeights(W,Z.size[0]);
-			convFFT(&(X),U,&(B),&(Z),W->size[2]);
-			delete [] U;
+			// convFFT(&(X),U,&(B),&(Z),W->size[2]);
+			// delete [] U;
 		}
 		else if(select == 2){
 			printf("Winograd not implemented yet!\n");

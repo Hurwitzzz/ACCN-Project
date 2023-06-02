@@ -107,13 +107,13 @@ void fft2d(C_Tensor *x_in, C_Tensor *X_out) {
     for (int i = 0; i < x_in->size[0]; ++i) {
         for (int j = 0; j < x_in->size[2]; ++j) {
             for (int k = 0; k < x_in->size[1]; ++k) {
-                temp[k] = X_out->data[k][i][j];
+                temp[k] = X_out->data[i][k][j];
             }
             
             fft(temp, temp, x_in->size[1]);
             
             for (int k = 0; k < x_in->size[1]; ++k) {
-                X_out->data[k][i][j] = temp[k];
+                X_out->data[i][k][j] = temp[k];
             }
         }
     }
@@ -121,25 +121,25 @@ void fft2d(C_Tensor *x_in, C_Tensor *X_out) {
     delete [] temp;
 }
 
-void ifft2d(C_Tensor *X_in, C_Tensor *x_out) {
-    C_FLOAT *temp = new C_FLOAT[X_in->size[2]];
+void ifft2d(C_Tensor *x_in, C_Tensor *X_out) {
+    C_FLOAT *temp = new C_FLOAT[x_in->size[2]];
 
-    for (int i = 0; i < X_in->size[0]; ++i) {
-        for (int j = 0; j < X_in->size[1]; ++j) {
-            ifft(X_in->data[i][j], x_out->data[i][j], X_in->size[2]);
+    for (int i = 0; i < x_in->size[0]; ++i) {
+        for (int j = 0; j < x_in->size[1]; ++j) {
+            ifft(x_in->data[i][j], X_out->data[i][j], x_in->size[2]);
         }
     }
 
-    for (int i = 0; i < X_in->size[0]; ++i) {
-        for (int j = 0; j < X_in->size[2]; ++j) {
-            for (int k = 0; k < X_in->size[1]; ++k) {
-                temp[k] = x_out->data[k][i][j];
+    for (int i = 0; i < x_in->size[0]; ++i) {
+        for (int j = 0; j < x_in->size[2]; ++j) {
+            for (int k = 0; k < x_in->size[1]; ++k) {
+                temp[k] = X_out->data[i][k][j];
             }
             
-            ifft(temp, temp, X_in->size[1]);
+            ifft(temp, temp, x_in->size[1]);
             
-            for (int k = 0; k < X_in->size[1]; ++k) {
-                x_out->data[k][i][j] = temp[k];
+            for (int k = 0; k < x_in->size[1]; ++k) {
+                X_out->data[i][k][j] = temp[k];
             }
         }
     }

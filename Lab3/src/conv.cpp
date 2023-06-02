@@ -97,18 +97,6 @@ Tensor * winoWeights(Tensor * W, int output_channels)
     int tile_size = wino->tile_size;
 	int input_channels = W->size[0];
 
-    // // Print out all elements in W
-    // for (int i = 0; i < input_channels; i++) {
-    //     for (int j = 0; j < k_size; j++) {
-    //         for (int k = 0; k < k_size; k++) {
-    //             printf("%f ", W->data[i][j][k]);
-    //         }
-    //         printf("\n");
-    //     }
-    //     printf("\n");
-    // }
-
-
 	// Create a new array to store the transformed weights and allocate memory for it.
 	Tensor * U = new Tensor[output_channels];
 	for (int i = 0; i < output_channels; i++) {
@@ -281,40 +269,96 @@ void convWinograd(Tensor * X, Tensor * U_wino , Tensor * B, Tensor * Z, int k_si
  * int		output_channels	: Number of output channels
  * Return:		C_Tensor *	: New Tensor containing transformed Weights
  */
+
+
 C_Tensor * fftWeights(Tensor * W, int output_channels)
 {
-    
-    
-    // int k_size = W->size[1];
-    // const FFT_STRUCT * fft = getFFT(k_size);
-    // if(fft == NULL)
-    //     return NULL;
-    // int input_channels = W->size[0];
 
-    // // Create a new array to store the transformed weights and allocate memory for it.
-    // C_Tensor * U_fft = new C_Tensor[output_channels];
-    // for (int i = 0; i < output_channels; i++) {
-    //     U_fft[i].allocate(input_channels, k_size, k_size);
-    // }
+    int k_size = W->size[1];
+    const FFT_STRUCT * fft = getFFT(k_size);
+    if(fft == NULL)
+        return NULL;
+    int tile_size = fft->tile_size;
+    int pad_size = tile_size - k_size;
+    int input_channels = W[0].size[0];
 
-    // // For each weight tensor
-    // for (int oc = 0; oc < output_channels; oc++) {
-    //     // For each weight channel
-    //     for (int wc = 0; wc < input_channels; wc++) {
-    //         // Apply 2D FFT to the weight channel
-    //         C_Tensor X_f(k_size, k_size, 2);
-    //         fft2d(&(W->data[wc][0][0]), &X_f);
-    //         // Store the transformed weights in U_fft
-    //         for (int i = 0; i < k_size; i++) {
-    //             for (int j = 0; j < k_size; j++) {
-    //                 U_fft[oc].data[wc][i][j][0] = X_f.data[i][j][0];
-    //                 U_fft[oc].data[wc][i][j][1] = X_f.data[i][j][1];
-    //             }
-    //         }
-    //     }
-    // }
+    // First flip the weight tensors
+    // W_flipped contains all flipped weight tensors
+    C_Tensor * W_flipped = new C_Tensor[output_channels];
+    for (int i = 0; i < output_channels; i++) {
+        W_flipped[i].allocate(input_channels, k_size, k_size);
+        for (int j = 0; j < input_channels; j++) {
+            // temp stores the one channel flipped weight tensor
+            C_Tensor * temp = new C_Tensor(1, k_size, k_size);
+            flip_Matrix(&W[i], temp, j);
+            // copy the flipped weight tensor to W_flipped
+            for (int k = 0; k < k_size; k++) {
+                for (int l = 0; l < k_size; l++) {
+                    W_flipped[i].data[j][k][l] = temp->data[0][k][l];
+                }
+            }
+            delete temp;
+        }
+    }
 
-    // return U_fft;
+    /*///////////////////////////////////////////////////////////////////
+    For test, DELETE!!!
+    */
+//    //print out the original weight tensor with a good visualization
+//     for (int i = 0; i < output_channels; i++) {
+//         for (int j = 0; j < input_channels; j++) {
+//             printf("W_original[%d][%d]:\n", i, j);
+//             for (int k = 0; k < k_size; k++) {
+//                 for (int l = 0; l < k_size; l++) {
+//                     printf("%f ", W[i].data[j][k][l]);
+//                 }
+//                 printf("\n");
+//             }
+//             printf("\n");
+
+//             printf("W_flipped[%d][%d]:\n", i, j);
+//             for (int k = 0; k < k_size; k++) {
+//                 for (int l = 0; l < k_size; l++) {
+//                     printf("%f ", W_flipped[i].data[j][k][l].real());
+//                 }
+//                 printf("\n");
+//             }
+//             printf("\n");
+//         }
+//     }
+
+//     return W_flipped;
+
+   ///////////////////////////////////////////////////////////////////////
+
+
+    // Pad the weight matrix with zeros to size "tile_size * tile_size"
+    C_Tensor * W_padded = new C_Tensor[output_channels];
+    for (int i = 0; i < output_channels; i++) {
+        W_padded[i].allocate(input_channels, tile_size, tile_size);
+        for (int j = 0; j < input_channels; j++) {
+            for (int k = 0; k < tile_size; k++) {
+                for (int l = 0; l < tile_size; l++) {
+                    if (k < k_size && l < k_size)
+                        W_padded[i].data[j][k][l] = W_flipped[i].data[j][k][l];
+                    else
+                        W_padded[i].data[j][k][l] = 0;
+                }
+            }
+        }
+    }
+
+    // Perform 2D-FFT on the padded weight matrix
+    C_Tensor * U_fft = new C_Tensor[output_channels];
+    for (int i = 0; i < output_channels; i++) {
+        U_fft[i].allocate(input_channels, tile_size, tile_size);
+        for (int j = 0; j < input_channels; j++) {
+            fft2d(&W_padded[i], &U_fft[i]);
+        }
+    }
+
+    delete [] W_padded;
+    return U_fft;
 }
 
 
@@ -326,11 +370,90 @@ C_Tensor * fftWeights(Tensor * W, int output_channels)
  * Tensor			*Z		: Output Tensor
  * int 			k_size		: Width and Height of weight kernel
  */
-void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, 
-		Tensor * Z, int k_size)
-{
+//conv.cpp
 
+void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, Tensor * Z, int k_size)
+{
+    const FFT_STRUCT * fft = getFFT(k_size);
+    if(fft == NULL)
+        return;
+    int tile_size = fft->tile_size;
+    int overlap = fft->overlap;
+    int stride = tile_size - overlap;
+    int output_channels = Z->size[0];
+    int input_channels = X->size[0];
+    int input_width = X->size[2];
+    int output_width = Z->size[2];
+    int num_tiles = ceil(1.0*(input_width - tile_size)/stride + 1);
+
+    // Loop through output feature map
+    for (int w = 0; w < output_channels; w++){
+        // Loop through input feature map with Stride N − (M − 1)
+        for (int t_row = 0; t_row < num_tiles; t_row++) {
+            for (int t_col = 0; t_col < num_tiles; t_col++) {
+                // Convert input tile (N × N ) 
+                // T_fft contains one transformed input tile (all channels)
+                C_Tensor * T_fft = new C_Tensor(input_channels, tile_size, tile_size);
+                for (int c = 0; c < input_channels; c++) {
+                    // temp_in is the untransformed, padded input tile (1 channel)
+                    C_Tensor * temp_in = new C_Tensor(1, tile_size, tile_size);
+                    for (int i = 0; i < tile_size; i++) {
+                        for (int j = 0; j < tile_size; j++) {
+                            // For boundary cases. If the input size is not divisible by the tile size. Pad the input tile with zeros
+                            if (i + stride * t_row < input_width && j + stride * t_col < input_width) {
+                                temp_in->data[0][i][j] = X->data[c][i + stride * t_row][j + stride * t_col];
+                            }
+                            else {
+                                temp_in->data[0][i][j] = 0;
+                            }
+                        }
+                    }
+                    C_Tensor * temp_out = new C_Tensor(1, tile_size, tile_size);
+                    fft2d(temp_in, temp_out);
+                    
+                    // Copy the transformed input tile (temp_out) to the transformed input tensor (T_fft)
+                    for (int i = 0; i < tile_size; i++) {
+                        for (int j = 0; j < tile_size; j++) {
+                            T_fft->data[c][i][j] = temp_out->data[0][i][j];
+                        }
+                    }
+                    delete temp_in;
+                    delete temp_out;
+                }
+
+                // Perform element-wise multiplication with converted weight
+                // Add up tiles from different input channels in frequency domain, and store the result in m_fft
+                C_Tensor * m_fft = new C_Tensor(1, tile_size, tile_size);
+                for (int w = 0; w < output_channels; w++) {
+                    for (int i = 0; i < tile_size; i++) {
+                        for (int j = 0; j < tile_size; j++) {
+                            for (int c = 0; c < input_channels; c++) {
+                                m_fft->data[0][i][j] += T_fft->data[c][i][j] * U_fft[w].data[c][i][j];
+                            }
+                        }
+                    }
+                }
+
+                // Perform inverse 2D-FFT on output tile and store N − (M − 1) values in the output matrix
+                Tensor * m = new Tensor(1, tile_size, tile_size);
+                ifft2d(m_fft, m);
+                for (int i = 0; i < tile_size - overlap; i++) {
+                    for (int j = 0; j < tile_size - overlap; j++) {
+                        if (i + stride * t_row < output_width && j + stride * t_col < output_width) {
+                            Z->data[0][i + stride * t_row][j + stride * t_col] += m->data[0][i][j] + B->data[0][0][0];
+                        }
+                    }
+                }
+
+                delete T_fft;
+                delete m_fft;
+                delete m;
+            }
+        }
+    }
+    
 }
+  
 
 
 /*--------------------------------------- Basic ------------------------------------------*/

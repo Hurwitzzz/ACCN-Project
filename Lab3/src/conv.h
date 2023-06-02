@@ -19,6 +19,7 @@ typedef struct{
 
 
 
+void flip_Matrix(Tensor * W_in, C_Tensor * W_out, int c);
 
 /* Your Basic Convolution */
 void convBasic(Tensor * X, Tensor * W ,  Tensor * b, Tensor * Z);
