@@ -303,7 +303,7 @@ C_Tensor * fftWeights(Tensor * W, int output_channels)
 
     /*///////////////////////////////////////////////////////////////////
     For test, DELETE!!!
-    */
+    
 //    //print out the original weight tensor with a good visualization
     // for (int i = 0; i < output_channels; i++) {
     //     for (int j = 0; j < input_channels; j++) {
@@ -351,7 +351,7 @@ C_Tensor * fftWeights(Tensor * W, int output_channels)
 
 
     // return W_flipped;
-
+    */
    ///////////////////////////////////////////////////////////////////////
 
 
@@ -448,16 +448,14 @@ void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, Tensor * Z, int k_size)
                 // Add up tiles from different input channels in frequency domain, and store the result in m_fft
                 // m_fft is a temporary tensor, it will be replaced for every weight tensor
                 C_Tensor * m_fft = new C_Tensor(1, tile_size, tile_size);
-                for (int w = 0; w < output_channels; w++) {
-                    for (int i = 0; i < tile_size; i++) {
-                        for (int j = 0; j < tile_size; j++) {
-                            for (int c = 0; c < input_channels; c++) {
-                                m_fft->data[0][i][j] += T_fft->data[c][i][j] * U_fft[w].data[c][i][j];  // "+=" is for adding up tiles from different input channels
-                            }
+                for (int i = 0; i < tile_size; i++) {
+                    for (int j = 0; j < tile_size; j++) {
+                        for (int c = 0; c < input_channels; c++) {
+                            m_fft->data[0][i][j] += T_fft->data[c][i][j] * U_fft[w].data[c][i][j];  // "+=" is for adding up tiles from different input channels
                         }
                     }
                 }
-
+                
                 // Perform inverse 2D-FFT on output tile 
                 C_Tensor * m = new C_Tensor(1, tile_size, tile_size);
                 ifft2d(m_fft, m);
@@ -478,7 +476,7 @@ void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, Tensor * Z, int k_size)
         }
     }
 
-
+    /*
     // ////////////////////////////////////////////////
     // // //         Test fft and ifft
     // ////////////////////////////////////////////////
@@ -565,7 +563,7 @@ void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, Tensor * Z, int k_size)
     // delete arr;
     // delete arr_fft;
     // delete arr_ifft;
-
+    */
 
 }
   
