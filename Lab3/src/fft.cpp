@@ -53,7 +53,7 @@ void bit_reverse_copy(C_FLOAT * x_in, C_FLOAT * X_out, int N) {
 }
 
 
-void fft(C_FLOAT *x_in, C_FLOAT *X_out, int N) {
+void myfft(C_FLOAT *x_in, C_FLOAT *X_out, int N) {
     bit_reverse_copy(x_in, X_out, N);
     
     for (int s = 1; (1 << s) <= N; s++) {
@@ -96,33 +96,38 @@ void ifft(C_FLOAT *x_in, C_FLOAT *X_out, int N) {
 }
 
 void fft2d(C_Tensor *x_in, C_Tensor *X_out) {
-    C_FLOAT *temp = new C_FLOAT[x_in->size[2]];
+    C_FLOAT *temp_in = new C_FLOAT[x_in->size[1]];
+    C_FLOAT *temp_out = new C_FLOAT[x_in->size[1]];
     
+    // FFT along rows
     for (int i = 0; i < x_in->size[0]; ++i) {
         for (int j = 0; j < x_in->size[1]; ++j) {
-            fft(x_in->data[i][j], X_out->data[i][j], x_in->size[2]);
+            myfft(x_in->data[i][j], X_out->data[i][j], x_in->size[2]);
         }
     }
 
+    // FFT along columns
     for (int i = 0; i < x_in->size[0]; ++i) {
         for (int j = 0; j < x_in->size[2]; ++j) {
             for (int k = 0; k < x_in->size[1]; ++k) {
-                temp[k] = X_out->data[i][k][j];
+                temp_in[k] = X_out->data[i][k][j];
             }
             
-            fft(temp, temp, x_in->size[1]);
+            myfft(temp_in, temp_out, x_in->size[1]);
             
             for (int k = 0; k < x_in->size[1]; ++k) {
-                X_out->data[i][k][j] = temp[k];
+                X_out->data[i][k][j] = temp_out[k];
             }
         }
     }
 
-    delete [] temp;
+    delete [] temp_in;
+    delete [] temp_out;
 }
 
 void ifft2d(C_Tensor *x_in, C_Tensor *X_out) {
-    C_FLOAT *temp = new C_FLOAT[x_in->size[2]];
+    C_FLOAT *temp_in = new C_FLOAT[x_in->size[1]];
+    C_FLOAT *temp_out = new C_FLOAT[x_in->size[1]];
 
     for (int i = 0; i < x_in->size[0]; ++i) {
         for (int j = 0; j < x_in->size[1]; ++j) {
@@ -133,18 +138,19 @@ void ifft2d(C_Tensor *x_in, C_Tensor *X_out) {
     for (int i = 0; i < x_in->size[0]; ++i) {
         for (int j = 0; j < x_in->size[2]; ++j) {
             for (int k = 0; k < x_in->size[1]; ++k) {
-                temp[k] = X_out->data[i][k][j];
+                temp_in[k] = X_out->data[i][k][j];
             }
             
-            ifft(temp, temp, x_in->size[1]);
+            ifft(temp_in, temp_out, x_in->size[1]);
             
             for (int k = 0; k < x_in->size[1]; ++k) {
-                X_out->data[i][k][j] = temp[k];
+                X_out->data[i][k][j] = temp_out[k];
             }
         }
     }
 
-    delete [] temp;
+    delete [] temp_in;
+    delete [] temp_out;
 }
 
 

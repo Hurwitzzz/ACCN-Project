@@ -16,9 +16,9 @@ void testConv(const char * infile, int select);
 
 int main(int argc , char * argv[])
 {
-	printf("argv[0]: %s\n",argv[0]);
-	printf("argv[1]: %s\n",argv[1]);
-	printf("argv[2]: %s\n",argv[2]);
+	// printf("argv[0]: %s\n",argv[0]);
+	// printf("argv[1]: %s\n",argv[1]);
+	// printf("argv[2]: %s\n",argv[2]);
 	if(argc < 3){
 		printf("Usage (test) : ./lab3.bin 0 optim\n");
 		printf("Usage (bench): ./lab3.bin 1 optim input_channels input_width kernel_size output_channels N\n");
@@ -39,7 +39,6 @@ int main(int argc , char * argv[])
 		timeConv(ic,iw,ks,oc,N,select);
 	}
 	else{
-		printf("111");
 		testConv("data/conv_test.dat",select);
 	}
 	return 0;
@@ -164,8 +163,8 @@ void testConv(const char * infile,int select)
 			// }
 
 			C_Tensor * U = fftWeights(W,Z.size[0]);
-			// convFFT(&(X),U,&(B),&(Z),W->size[2]);
-			// delete [] U;
+			convFFT(&(X),U,&(B),&(Z),W->size[2]);
+			delete [] U;
 		}
 		else if(select == 2){
 			printf("Winograd not implemented yet!\n");

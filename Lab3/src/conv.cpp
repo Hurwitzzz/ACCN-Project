@@ -6,7 +6,7 @@
  * This takes the input matrix c (*W_in)[c] flips it and stores it
  * in the real values of the complex Matrix W_out (1 channel)
  * Inputs:
- * Tensor	*	W_in:	Pointer to input Tensor (real)
+ * Tensor	*	W_in:	Pointer to input Tensor (real)      
  * C_Tensor	*	W_out:	Pointer to the output Tensor values stored in real part (complex) 
  * int 			c:		Channel of input to use
  */
@@ -305,29 +305,52 @@ C_Tensor * fftWeights(Tensor * W, int output_channels)
     For test, DELETE!!!
     */
 //    //print out the original weight tensor with a good visualization
-//     for (int i = 0; i < output_channels; i++) {
-//         for (int j = 0; j < input_channels; j++) {
-//             printf("W_original[%d][%d]:\n", i, j);
-//             for (int k = 0; k < k_size; k++) {
-//                 for (int l = 0; l < k_size; l++) {
-//                     printf("%f ", W[i].data[j][k][l]);
-//                 }
-//                 printf("\n");
-//             }
-//             printf("\n");
+    // for (int i = 0; i < output_channels; i++) {
+    //     for (int j = 0; j < input_channels; j++) {
+            // printf("W_original[%d][%d]:\n", i, j);
+            // for (int k = 0; k < k_size; k++) {
+            //     for (int l = 0; l < k_size; l++) {
+            //         printf("%f ", W[i].data[j][k][l]);
+            //     }
+            //     printf("\n");
+            // }
+            // printf("\n");
 
-//             printf("W_flipped[%d][%d]:\n", i, j);
-//             for (int k = 0; k < k_size; k++) {
-//                 for (int l = 0; l < k_size; l++) {
-//                     printf("%f ", W_flipped[i].data[j][k][l].real());
-//                 }
-//                 printf("\n");
-//             }
-//             printf("\n");
-//         }
-//     }
+            // printf("W_flipped[%d][%d]:\n", i, j);
+    //         for (int k = 0; k < k_size; k++) {
+    //             for (int l = 0; l < k_size; l++) {
+    //                 printf("%f ", W_flipped[0].data[0][k][l].real());
+    //             }
+    //             printf("\n");
+    //     //     }
+    //     //     printf("\n");
+    //     // }
+    // }
 
-//     return W_flipped;
+    // // print out the W_flipped tensor
+    // printf("W_flipped.shape: %d, %d, %d\n", W_flipped[0].size[0], W_flipped[0].size[1], W_flipped[0].size[2]);
+    // for (int k = 0; k < k_size; k++) {
+    //     for (int l = 0; l < k_size; l++) {
+    //         printf("%f + i %f, ", W_flipped[0].data[0][k][l].real(), W_flipped[0].data[0][k][l].imag());
+    //     }
+    //     printf("\n");
+    // }
+
+    // // calculate the FFT of the flipped weight tensor
+    // C_Tensor * W_fft = new C_Tensor(1,k_size,k_size);
+    // fft2d(W_flipped, W_fft);
+    // // print out the FFT of the flipped weight tensor
+    // printf("W_fft:\n");
+    // for (int k = 0; k < k_size; k++) {
+    //     for (int l = 0; l < k_size; l++) {
+    //         printf("%f + i %f, ", W_fft[0].data[0][k][l].real(), W_fft[0].data[0][k][l].imag());
+    //     }
+    //     printf("\n");
+    // }
+
+
+
+    // return W_flipped;
 
    ///////////////////////////////////////////////////////////////////////
 
@@ -423,25 +446,28 @@ void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, Tensor * Z, int k_size)
 
                 // Perform element-wise multiplication with converted weight
                 // Add up tiles from different input channels in frequency domain, and store the result in m_fft
+                // m_fft is a temporary tensor, it will be replaced for every weight tensor
                 C_Tensor * m_fft = new C_Tensor(1, tile_size, tile_size);
                 for (int w = 0; w < output_channels; w++) {
                     for (int i = 0; i < tile_size; i++) {
                         for (int j = 0; j < tile_size; j++) {
                             for (int c = 0; c < input_channels; c++) {
-                                m_fft->data[0][i][j] += T_fft->data[c][i][j] * U_fft[w].data[c][i][j];
+                                m_fft->data[0][i][j] += T_fft->data[c][i][j] * U_fft[w].data[c][i][j];  // "+=" is for adding up tiles from different input channels
                             }
                         }
                     }
                 }
 
-                // Perform inverse 2D-FFT on output tile and store N − (M − 1) values in the output matrix
-                Tensor * m = new Tensor(1, tile_size, tile_size);
+                // Perform inverse 2D-FFT on output tile 
+                C_Tensor * m = new C_Tensor(1, tile_size, tile_size);
                 ifft2d(m_fft, m);
+                // Discard the first M-1, and store N − (M − 1) values in the output matrix
                 for (int i = 0; i < tile_size - overlap; i++) {
                     for (int j = 0; j < tile_size - overlap; j++) {
-                        if (i + stride * t_row < output_width && j + stride * t_col < output_width) {
-                            Z->data[0][i + stride * t_row][j + stride * t_col] += m->data[0][i][j] + B->data[0][0][0];
-                        }
+                        // printf("w = %d, i = %d, j = %d, t_row = %d, t_col = %d, i+overlap = %d, j+overlap = %d, tile_size = %d, stride = %d, overlap = %d, Z.shape = %d, %d, %d\n", w, i, j, t_row, t_col, i + overlap, j + overlap, tile_size, stride, overlap, Z->size[0], Z->size[1], Z->size[2]);
+                        if (i + t_row * stride < output_width && j + t_col * stride < output_width){
+                            Z->data[w][i + t_row * stride][j + t_col * stride] = m->data[0][i + overlap][j + overlap].real() + B->data[0][0][w];
+                        }                       
                     }
                 }
 
@@ -451,7 +477,96 @@ void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, Tensor * Z, int k_size)
             }
         }
     }
-    
+
+
+    // ////////////////////////////////////////////////
+    // // //         Test fft and ifft
+    // ////////////////////////////////////////////////
+
+    // int N = 8;
+    // // Create a C_FLOAT array containing 1,2,3,4,5,6, 7 ,8 to test fft and ifft
+    // C_FLOAT * arr1d = new C_FLOAT[N]{1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0};
+    // // apply fft to arr1d
+    // C_FLOAT * arr1d_fft = new C_FLOAT[N];
+
+    // myfft(arr1d, arr1d_fft, N);
+    // printf("arr1d_fft: ");
+    // for (int i = 0; i < N; i++){
+    //     printf("%f+j%f, ", arr1d_fft[i].real(), arr1d_fft[i].imag());
+    // }
+    // printf("\n");
+
+
+    // ifft(arr1d_fft, arr1d, N);
+    // printf("arr1d_ifft: ");
+    // for (int i = 0; i < N; i++){
+    //     printf("%f+j%f, ", arr1d[i].real(), arr1d[i].imag());
+    // }
+    // printf("\n");
+    // printf("\n");
+
+
+    // delete [] arr1d;
+    // delete [] arr1d_fft;
+
+    // ////////////////////////////////////////////////
+    // // //       Test fft2d and ifft2d
+    // ////////////////////////////////////////////////
+
+    // // Creating a 2 by 2 2D array
+    // C_Tensor * arr = new C_Tensor(1,4,4);
+    // // Assigning values to the array
+    // arr->data[0][0][0] = 1.0;
+    // arr->data[0][0][1] = 2.0;
+    // arr->data[0][0][2] = 3.0;
+    // arr->data[0][0][3] = 4.0;
+    // arr->data[0][1][0] = 5.0;
+    // arr->data[0][1][1] = 6.0;
+    // arr->data[0][1][2] = 7.0;
+    // arr->data[0][1][3] = 8.0;
+    // arr->data[0][2][0] = 9.0;
+    // arr->data[0][2][1] = 10.0;
+    // arr->data[0][2][2] = 11.0;
+    // arr->data[0][2][3] = 12.0;
+    // arr->data[0][3][0] = 13.0;
+    // arr->data[0][3][1] = 14.0;
+    // arr->data[0][3][2] = 15.0;
+    // arr->data[0][3][3] = 16.0;
+
+
+    // // apply fft2d to arr
+    // C_Tensor * arr_fft = new C_Tensor(1,4,4);
+    // fft2d(arr, arr_fft);
+
+    // // visualize the arr_fft
+    // printf("arr_fft2d: \n");
+    // for (int i = 0; i < 4; i++){
+    //     for (int j = 0; j < 4; j++) {
+    //         printf("%f+i%f, ",arr_fft->data[0][i][j].real(), arr_fft->data[0][i][j].imag());
+    //     }
+    //     printf("\n");
+    // }
+    // printf("\n");
+
+    // // apply ifft2d to arr_fft
+    // C_Tensor * arr_ifft = new C_Tensor(1,4,4);
+    // ifft2d(arr_fft, arr_ifft);
+
+    // // visualize the arr_ifft
+    // printf("arr_ifft2d: \n");
+    // for (int i = 0; i < 4; i++){
+    //     for (int j = 0; j < 4; j++) {
+    //         printf("%f+i%f, ",arr_ifft->data[0][i][j].real(), arr_ifft->data[0][i][j].imag());
+    //     }
+    //     printf("\n");
+    // }
+    // printf("\n");
+
+    // delete arr;
+    // delete arr_fft;
+    // delete arr_ifft;
+
+
 }
   
 

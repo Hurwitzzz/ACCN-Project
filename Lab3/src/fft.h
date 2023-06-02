@@ -26,7 +26,7 @@ class C_Tensor
 };
 
 void bit_reverse_copy(C_FLOAT * x_in, C_FLOAT * X_out, int N);
-void fft(C_FLOAT * x_in, C_FLOAT * X_out, int N);
+void myfft(C_FLOAT * x_in, C_FLOAT * X_out, int N);
 void ifft(C_FLOAT * x_in, C_FLOAT * X_out, int N);
 
 void fft2d(C_Tensor * x_in, C_Tensor * X_out);

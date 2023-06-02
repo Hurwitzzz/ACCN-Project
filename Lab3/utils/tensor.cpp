@@ -147,6 +147,7 @@ int compareTensors(Tensor * y, Tensor * ref, int N, FLOAT limit){
 			}
 			FLOAT ** my = y[n][i];
 			FLOAT ** mr = ref[n][i];
+			// printf("my values\n");
 			for(int j =0; j < y[n].size[1]; j++){
 				for(int k =0; k < y[n].size[2];k++){
 					FLOAT diff = Fabs( my[j][k] -  mr[j][k]);
@@ -156,8 +157,20 @@ int compareTensors(Tensor * y, Tensor * ref, int N, FLOAT limit){
 						ret = 1;
 					}
 					abs_diff += diff;
+					// // print out my and mr values
+					// printf("%f",my[j][k]);
 				}
+				// printf("\n");
 			}
+			// // print out ref values
+			// printf("ref values\n");
+			// for (int j = 0; j < ref[n].size[1]; j++){
+			// 	for(int k = 0; k < ref[n].size[2]; k++){
+			// 		printf("%f",mr[j][k]);
+			// 	}
+			// 	printf("\n");
+			// }
+
 		}
 	}
 	printf("Total avg diff: %lf\n",abs_diff/(1.f * y->size[0] * y->size[1] * y->size[2]));
