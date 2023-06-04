@@ -421,27 +421,28 @@ void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, Tensor * Z, int k_size)
         for (int t_col = 0; t_col < num_tiles; t_col++) {
             // Loop through output feature map
             C_Tensor * m_fft = new C_Tensor(output_channels, tile_size, tile_size);
-            for (int w = 0; w < output_channels; w++){
-                // Convert input tile (N × N ) 
-                for (int c = 0; c < input_channels; c++) {
-                    for (int i = 0; i < tile_size; i++) {
-                        for (int j = 0; j < tile_size; j++) {
-                            // For boundary cases. If the input size is not divisible by the tile size. Pad the input tile with zeros
-                            if (i + stride * t_row < input_width && j + stride * t_col < input_width) {
-                                temp->data[c][i][j] = X->data[c][i + stride * t_row][j + stride * t_col];
-                            }
-                            else {
-                                temp->data[c][i][j] = 0;
-                            }
+            
+            // Convert input tile (N × N ) 
+            for (int c = 0; c < input_channels; c++) {
+                for (int i = 0; i < tile_size; i++) {
+                    for (int j = 0; j < tile_size; j++) {
+                        // For boundary cases. If the input size is not divisible by the tile size. Pad the input tile with zeros
+                        if (i + stride * t_row < input_width && j + stride * t_col < input_width) {
+                            temp->data[c][i][j] = X->data[c][i + stride * t_row][j + stride * t_col];
+                        }
+                        else {
+                            temp->data[c][i][j] = 0;
                         }
                     }
                 }
-                // Perform 2D-FFT on input tile
-                fft2d(temp, T_fft);
-
-                // Perform element-wise multiplication with converted weight
-                // Add up tiles from different input channels in frequency domain, and store the result in m_fft
-                // m_fft is a temporary tensor, it will be replaced for every weight tensor               
+            }
+            // Perform 2D-FFT on input tile
+            fft2d(temp, T_fft);
+                        
+            // Perform element-wise multiplication with converted weight
+            // Add up tiles from different input channels in frequency domain, and store the result in m_fft
+            // m_fft is a temporary tensor, it will be replaced for every weight tensor 
+            for (int w = 0; w < output_channels; w++){              
                 for (int i = 0; i < tile_size; i++) {
                     for (int j = 0; j < tile_size; j++) {
                         for (int c = 0; c < input_channels; c++) {
