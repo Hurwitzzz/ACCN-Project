@@ -418,21 +418,35 @@ void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, Tensor * Z, int k_size)
     
     // Loop through input feature map with Stride N − (M − 1)
     for (int t_row = 0; t_row < num_tiles; t_row++) {
-        for (int t_col = 0; t_col < num_tiles; t_col++) {
-            // Loop through output feature map
-            C_Tensor * m_fft = new C_Tensor(output_channels, tile_size, tile_size);
-            
-            // Convert input tile (N × N ) 
+        // two col tiles each time, store one tile in real part, another in imaginary part
+        for (int t_col = 0; t_col < ceil(1.0 * num_tiles / 2); t_col++) {
+
+            // Combine two real tiles into one complex tile, and do fft2d on it
             for (int c = 0; c < input_channels; c++) {
                 for (int i = 0; i < tile_size; i++) {
                     for (int j = 0; j < tile_size; j++) {
-                        // For boundary cases. If the input size is not divisible by the tile size. Pad the input tile with zeros
-                        if (i + stride * t_row < input_width && j + stride * t_col < input_width) {
-                            temp->data[c][i][j] = X->data[c][i + stride * t_row][j + stride * t_col];
+                        // For boundary cases. If the input size is not divisible by the 2* tile size. Pad the input tile with zeros
+                        if (i + stride * t_row < input_width){
+                            // if the 1st tile_col within the boundary
+                            if (j + 2 * stride * t_col < input_width) {
+                                
+                            }
+                            // if the 1st tile_col out of boundary, 2nd must out of boundary
+                            else {
+                                temp->data[c][i][j] = C_FLOAT(0,0);
+                            }
                         }
+                        // if the row is out of boundary, both real and imaginary part are 0
                         else {
-                            temp->data[c][i][j] = 0;
+                            temp->data[c][i][j] = C_FLOAT(0,0);
                         }
+                        // // Case 1: two tiles both within the boundary
+                        // if (i + stride * t_row < input_width && (j + 2*stride * t_col + stride < input_width)) {
+                        //     temp->data[c][i][j] = C_FLOAT(X->data[c][i + stride * t_row][j + 2 * stride * t_col], X->data[c][i + stride * t_row][j + 2 * stride * t_col + stride]);
+                        // }
+                        // else if (i + stride * t_row < input_width) {
+                        //     temp->data[c][i][j] = 0;
+                        // }
                     }
                 }
             }
@@ -441,7 +455,8 @@ void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, Tensor * Z, int k_size)
                         
             // Perform element-wise multiplication with converted weight
             // Add up tiles from different input channels in frequency domain, and store the result in m_fft
-            // m_fft is a temporary tensor, it will be replaced for every weight tensor 
+            // m_fft = results of 1 input tile and all weight tensors
+            C_Tensor * m_fft = new C_Tensor(output_channels, tile_size, tile_size);
             for (int w = 0; w < output_channels; w++){              
                 for (int i = 0; i < tile_size; i++) {
                     for (int j = 0; j < tile_size; j++) {
