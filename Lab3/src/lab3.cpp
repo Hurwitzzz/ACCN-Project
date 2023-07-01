@@ -37,7 +37,7 @@ int main(int argc , char * argv[])
 		printf("Usage (test lab2 nets) : ./lab3.bin 2 optim\n");
 		printf("Usage (classify with vgg) : ./lab3.bin 3 optim image_tensor\n");
 		printf("Usage (bench lab2 nets) : ./lab3.bin 4 optim\n");
-		printf("Tip: Set optim to 3 to enable automatic optimization picking\n");
+		printf("optim: 0 = naive, 1 = fft, 2 = wino, 3 = auto\n");
 		return 1;
 	}
 
