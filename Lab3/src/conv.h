@@ -21,13 +21,7 @@ typedef struct{
 
 void flip_Matrix(Tensor * W_in, C_Tensor * W_out, int c);
 
-/* 
- * Applies a basic/naive 2d convolution on a 3D X using W: Z= W (conv) X + b
- * Tensor * X:		Input Tensor
- * Tensor * W:		Array of N weight Tensors (N == Z.size[0]) 
- * Tensor * Z:		Output Tensor 
- * Tensor * b:		Bias 
- */
+/* Your Basic Convolution */
 void convBasic(Tensor * X, Tensor * W ,  Tensor * b, Tensor * Z);
 
 /* 

@@ -138,12 +138,13 @@ Question:
 2. We only have one weight tensor, how could we get more than one output channel?
 3. Is the stride = r-1? If yes, the input matrix in slide 24 is not big enough for stride = 2.
 */ 
+
 void convWinograd(Tensor * X, Tensor * U_wino , Tensor * B, Tensor * Z, int k_size)
 {
     // print *B.shape
-    // printf("U_wino.shape: %d %d %d\n", U_wino->size[0], U_wino->size[1], U_wino->size[2]);
+    printf("U_wino.shape: %d %d %d\n", U_wino->size[0], U_wino->size[1], U_wino->size[2]);
     // printf("B.shape: %d %d %d\n", B->size[0], B->size[1], B->size[2]); // shape = (1,1,output_channel). It seems that for each output feature map, there is only one number as bias.
-	// printf("Z.size= %d, %d, %d\n",Z->size[0],Z->size[1],Z->size[2]);
+	printf("Z.size= %d, %d, %d\n",Z->size[0],Z->size[1],Z->size[2]);
     const WINOGRAD_STRUCT * wino = getWino(k_size);
     if(wino == NULL)
         return;
@@ -154,7 +155,7 @@ void convWinograd(Tensor * X, Tensor * U_wino , Tensor * B, Tensor * Z, int k_si
     int output_width = Z->size[2];
     int tile_stride = wino->tile_stride;
     int num_tiles = ceil(1.0*(input_width - tile_size)/tile_stride + 1); // each row or col
-    // printf("num_tiles: %d\n", num_tiles);
+    printf("num_tiles: %d\n", num_tiles);
 
 
     uint32_t z_width = Z->size[2];
@@ -268,6 +269,8 @@ void convWinograd(Tensor * X, Tensor * U_wino , Tensor * B, Tensor * Z, int k_si
  * int		output_channels	: Number of output channels
  * Return:		C_Tensor *	: New Tensor containing transformed Weights
  */
+
+
 C_Tensor * fftWeights(Tensor * W, int output_channels)
 {
 
@@ -368,8 +371,6 @@ C_Tensor * fftWeights(Tensor * W, int output_channels)
         }
     }
 
-    delete [] W_flipped;
-
     // Perform 2D-FFT on the padded weight matrix
     C_Tensor * U_fft = new C_Tensor[output_channels];
     for (int i = 0; i < output_channels; i++) {
@@ -392,6 +393,8 @@ C_Tensor * fftWeights(Tensor * W, int output_channels)
  * Tensor			*Z		: Output Tensor
  * int 			k_size		: Width and Height of weight kernel
  */
+//conv.cpp
+
 void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, Tensor * Z, int k_size)
 {
     const FFT_STRUCT * fft = getFFT(k_size);
@@ -415,21 +418,35 @@ void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, Tensor * Z, int k_size)
     
     // Loop through input feature map with Stride N − (M − 1)
     for (int t_row = 0; t_row < num_tiles; t_row++) {
-        for (int t_col = 0; t_col < num_tiles; t_col++) {
-            // Loop through output feature map
-            C_Tensor * m_fft = new C_Tensor(output_channels, tile_size, tile_size);
-            
-            // Convert input tile (N × N ) 
+        // two col tiles each time, store one tile in real part, another in imaginary part
+        for (int t_col = 0; t_col < ceil(1.0 * num_tiles / 2); t_col++) {
+
+            // Combine two real tiles into one complex tile, and do fft2d on it
             for (int c = 0; c < input_channels; c++) {
                 for (int i = 0; i < tile_size; i++) {
                     for (int j = 0; j < tile_size; j++) {
-                        // For boundary cases. If the input size is not divisible by the tile size. Pad the input tile with zeros
-                        if (i + stride * t_row < input_width && j + stride * t_col < input_width) {
-                            temp->data[c][i][j] = X->data[c][i + stride * t_row][j + stride * t_col];
+                        // For boundary cases. If the input size is not divisible by the 2* tile size. Pad the input tile with zeros
+                        if (i + stride * t_row < input_width){
+                            // if the 1st tile_col within the boundary
+                            if (j + 2 * stride * t_col < input_width) {
+                                
+                            }
+                            // if the 1st tile_col out of boundary, 2nd must out of boundary
+                            else {
+                                temp->data[c][i][j] = C_FLOAT(0,0);
+                            }
                         }
+                        // if the row is out of boundary, both real and imaginary part are 0
                         else {
-                            temp->data[c][i][j] = 0;
+                            temp->data[c][i][j] = C_FLOAT(0,0);
                         }
+                        // // Case 1: two tiles both within the boundary
+                        // if (i + stride * t_row < input_width && (j + 2*stride * t_col + stride < input_width)) {
+                        //     temp->data[c][i][j] = C_FLOAT(X->data[c][i + stride * t_row][j + 2 * stride * t_col], X->data[c][i + stride * t_row][j + 2 * stride * t_col + stride]);
+                        // }
+                        // else if (i + stride * t_row < input_width) {
+                        //     temp->data[c][i][j] = 0;
+                        // }
                     }
                 }
             }
@@ -438,7 +455,8 @@ void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, Tensor * Z, int k_size)
                         
             // Perform element-wise multiplication with converted weight
             // Add up tiles from different input channels in frequency domain, and store the result in m_fft
-            // m_fft is a temporary tensor, it will be replaced for every weight tensor 
+            // m_fft = results of 1 input tile and all weight tensors
+            C_Tensor * m_fft = new C_Tensor(output_channels, tile_size, tile_size);
             for (int w = 0; w < output_channels; w++){              
                 for (int i = 0; i < tile_size; i++) {
                     for (int j = 0; j < tile_size; j++) {
@@ -468,7 +486,6 @@ void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, Tensor * Z, int k_size)
     
     delete temp;
     delete T_fft;
-    delete m;
     
 }
     
@@ -566,41 +583,58 @@ void convFFT(Tensor * X, C_Tensor * U_fft, Tensor * B, Tensor * Z, int k_size)
 
 
 /*--------------------------------------- Basic ------------------------------------------*/
-/* 
- * Applies a basic/naive 2d convolution on a 3D X using W: Z= W (conv) X + b
- * Tensor * X:		Input Tensor
- * Tensor * W:		Array of N weight Tensors (N == Z.size[0]) 
- * Tensor * Z:		Output Tensor 
- * Tensor * b:		Bias 
- */
+/* Copy your basic function in here! */
 void convBasic(Tensor * X, Tensor * W ,  Tensor * b, Tensor * Z)
 {
-	// printf("%d %d %d\n", X->size[0], X->size[1], X->size[2]);
-	// printf("%d %d %d\n", W->size[0], W->size[1], W->size[2]);
-	// printf("%d %d %d\n", b->size[0], b->size[1], b->size[2]);
-	// printf("%d %d %d\n", Z->size[0], Z->size[1], Z->size[2]);
-	int in_chan = X->size[0];
-	int out_chan = Z->size[0];
-	int wx = X->size[1];
-	int wy = X->size[2];
-	for (int ochan = 0; ochan < out_chan; ochan++) {
-    	int weight_wx = W[ochan].size[1];
-    	int weight_wy = W[ochan].size[2];
-    	for (int x = 0; x < wx - weight_wx + 1; x++) {
-    		for (int y = 0; y < wy - weight_wy + 1; y++) {
-        		FLOAT sum = 0;
-           		for (int ichan = 0; ichan < in_chan; ichan++) {
-        			for (int ix = 0; ix < weight_wx; ix++) {
-        				for (int iy = 0; iy < weight_wy; iy++) {
-        					sum += X->data[ichan][x+ix][y+iy] * 
-        					  W[ochan].data[ichan][ix][iy];
-        				}
-        			}
-           		}
-    			Z->data[ochan][x][y] = sum + b->data[0][0][ochan];
-    		}
-    	}
-	}
+	// printf("W.size= %d, %d, %d, %d \n",W->size[0],W[0].size[0],W[0].size[1],W[0].size[2]);
+    printf("number of weight tensors = %d, number of output channel = %d \n",W->size[0], Z->size[0]);
+    // printf("X.size= %d, %d, %d\n",X->size[0],X->size[1],X->size[2]);
+    // printf("Z.size= %d, %d, %d\n",Z->size[0],Z->size[1],Z->size[2]);
+    printf("b.size= %d, %d, %d\n",b->size[0],b->size[1],b->size[2]);
 
+    // printf("----------\n");
+
+    uint32_t z_width = Z->size[2];
+    uint32_t z_height = Z->size[1];
+    uint32_t z_channel = Z->size[0];
+
+    uint32_t xc = X->size[0];
+    // uint32_t wm = W[0].size[1];
+    // uint32_t wn = W[0].size[2];
+
+    // initialize output tensor to zero
+    for (uint32_t i = 0; i < z_channel; i++) {
+        for (uint32_t j = 0; j < z_height; j++) {
+            for (uint32_t k = 0; k < z_width; k++) {
+                Z->data[i][j][k] = 0;
+            }
+        }
+    }
+
+    for (uint32_t i=0; i<z_channel; i++)
+        {
+            
+            for (uint32_t j=0; j<z_height; j++)
+            {
+                // printf("j=%d \n",j);
+                for (uint32_t k=0; k<z_width; k++)
+                {
+                    // printf("k=%d \n",k);
+                    for (uint32_t c=0; c<xc; c++)
+                    {
+                        for (uint32_t p=0; p<W[i].size[1]; p++)
+                        {
+                            for (uint32_t q=0; q<W[i].size[2]; q++)
+                            {
+                                // printf("k=%d \n",k);
+                                Z->data[i][j][k] += X->data[c][j+p][k+q] * W[i].data[c][p][q];
+                                // Z->data[i][j][k] +=1;
+                            }
+                        }
+                    }
+                    Z->data[i][j][k] += b->data[0][0][i]; 
+                }
+                
+            }
+        }
 }
-

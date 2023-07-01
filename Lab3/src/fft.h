@@ -32,4 +32,7 @@ void ifft(C_FLOAT * x_in, C_FLOAT * X_out, int N);
 void fft2d(C_Tensor * x_in, C_Tensor * X_out);
 void ifft2d(C_Tensor *x_in, C_Tensor *X_out);
 
+// void ifft2d(C_Tensor * X_f , C_Tensor * x_out);
+
+
 #endif
