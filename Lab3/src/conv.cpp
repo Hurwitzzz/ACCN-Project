@@ -374,9 +374,7 @@ C_Tensor * fftWeights(Tensor * W, int output_channels)
     C_Tensor * U_fft = new C_Tensor[output_channels];
     for (int i = 0; i < output_channels; i++) {
         U_fft[i].allocate(input_channels, tile_size, tile_size);
-        for (int j = 0; j < input_channels; j++) {
-            fft2d(&W_padded[i], &U_fft[i]);
-        }
+        fft2d(&W_padded[i], &U_fft[i]);
     }
 
     delete [] W_padded;
