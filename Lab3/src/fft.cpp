@@ -1,5 +1,4 @@
 #include "fft.h"
-#include <vector>
 
 void C_Tensor::allocate(uint32_t dim_z, uint32_t dim_y, uint32_t dim_x)
 {
@@ -36,7 +35,6 @@ C_Tensor::~C_Tensor()
 	}
 }
 
-
 void bit_reverse_copy(C_FLOAT * x_in, C_FLOAT * X_out, int N) {
     int logN = log2(N);
     for (int i = 0; i < N; i++) {
@@ -53,7 +51,6 @@ void bit_reverse_copy(C_FLOAT * x_in, C_FLOAT * X_out, int N) {
         X_out[reversed] = x_in[i];
     }
 }
-
 
 
 void myfft(C_FLOAT *x_in, C_FLOAT *X_out, int N) {
@@ -155,16 +152,4 @@ void ifft2d(C_Tensor *x_in, C_Tensor *X_out) {
     delete [] temp_in;
     delete [] temp_out;
 }
-
-
-// void fft2d(C_Tensor * x_in, C_Tensor * X_f)
-// {
-	
-// }
-
-// void ifft2d(C_Tensor * X_f , C_Tensor * x_out)
-// {
-	
-// }
-
 
