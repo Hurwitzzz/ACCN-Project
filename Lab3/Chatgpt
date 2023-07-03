@@ -1,5 +1,0 @@
-There are some wrong in winoWeights function. Now, I will explain arguments of this function to make you more clear. 
-
-The Tensor * W is a pointer pointing to the first address of the Weight matrix. There are totally output_channels number of weight matrix will be accessed. And each weight matrix may have more than one channels.
-
-Now please implement the function.
