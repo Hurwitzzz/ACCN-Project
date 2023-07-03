@@ -110,21 +110,19 @@ Tensor * CNN::inference(Tensor * input)
 				runtime[1] += mtock(start);
 				break;
 			case Layer_Type::Conv:
-				if(lay.pad > 0) {
-					X = padTensor(X, lay.pad);
-				}
-				if(lay.optimized) {
-					if(lay.optimized == Optimization::Wino) {
+				if(lay.pad > 0) { X = padTensor(X, lay.pad); }
+				switch(lay.optimized) {
+					case Optimization::Wino:
 						convWinograd(X, lay.W, lay.B, lay.Z, lay.kernel_width);
-						X = lay.Z;
-					} else if(lay.optimized == Optimization::FFT) {
+						break;
+					case Optimization::FFT:
 						convFFT(X, lay.W_fft, lay.B, lay.Z, lay.kernel_width);
-						X = lay.Z;
-					}
-				} else {
-    				convBasic(X, lay.W, lay.B, lay.Z);
-    				X = lay.Z;
+						break;
+					default:
+        				convBasic(X, lay.W, lay.B, lay.Z);
 				}
+        		if(lay.pad > 0) { delete X; }
+				X = lay.Z;
 				runtime[3] += mtock(start);
 				break;
 			case Layer_Type::Linear:
@@ -179,10 +177,14 @@ void CNN::prepare(Optimization optim /*= Optimization::Auto*/)
 
     			if(thisOptim == Optimization::FFT) {
 					// Pre Transform the Weights for fft convolution
-    				lay.W_fft = fftWeights(lay.W, lay.output_size[0]);
+					auto W_fft = fftWeights(lay.W, lay.output_size[0]);
+					delete [] lay.W;
+    				lay.W_fft = W_fft;
     			} else if(thisOptim == Optimization::Wino) {
 					// Pre Transform the Weights for winograd convolution
-    				lay.W = winoWeights(lay.W, lay.output_size[0]);
+					auto W = winoWeights(lay.W, lay.output_size[0]);
+					delete [] lay.W;
+    				lay.W = W;
     			}
 
 				lay.optimized = thisOptim;
