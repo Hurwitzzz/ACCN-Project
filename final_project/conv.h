@@ -1,11 +1,9 @@
-#define X_SIZE 50 
-#define X_CHANNEL 3
-#define W_SIZE 30 
+#define X_SIZE 140 // if possible, set to 128 
+#define X_CHANNEL 512
 #define W_CHANNEL (X_CHANNEL)
-#define Z_SIZE 50 
-#define Z_CHANNEL 3
-#define B_SIZE 20 
-#define B_CHANNEL Z_CHANNEL
+#define Z_SIZE 128 
+#define Z_CHANNEL 512
+#define B_CHANNEL (Z_CHANNEL)
 #define KERNEL_SIZE 3
 
 // Declare the function

@@ -82,64 +82,81 @@ L4:                 for(int c = 0; c < x_c; c++) {
 }
 
 
-
-
-
-
-
-
-
-float get_x(float tensor[KERNEL_SIZE*KERNEL_SIZE],int row, int column)
+void EntryConv(float x_sm[X_CHANNEL][X_SIZE][X_SIZE], 
+float w_sm[W_CHANNEL][KERNEL_SIZE][KERNEL_SIZE][KERNEL_SIZE], 
+float b_sm[B_CHANNEL], 
+int x_w, int x_h, int x_c, int z_c, 
+float z_sm[Z_CHANNEL][Z_SIZE][Z_SIZE])
 {
-    if (row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
-    {
-        printf("Error: get_x out of bound\n");
-        return 0;
-    }
-    else
-    {
-        return tensor[row * KERNEL_SIZE + column];
-    }
-}
-float get_X(float tensor[X_CHANNEL*X_SIZE*X_SIZE], int ch, int row, int column)
 {
+    #pragma HLS INTERFACE m_axi port=x_sm, w_sm depth = 512
+    #pragma HLS INTERFACE m_axi port=b_sm depth = 10
+    #pragma HLS INTERFACE m_axi port=z_sm depth = 512
 
-    if (ch < 0 || ch >= X_CHANNEL || row < 0 || row >= X_SIZE || column < 0 || column >= X_SIZE)
-    {
-        printf("Error: get_X out of bound\n");
-        return 0;
-    }
-    else
-    {
-        return tensor[(ch * X_SIZE + row) * X_SIZE + column];
-    }
+    #pragma HLS INTERFACE s_axilite port=return
+    #pragma HLS INTERFACE s_axilite port=x_sm w_sm 
+    #pragma HLS INTERFACE s_axilite port=b_sm 
+    #pragma HLS INTERFACE s_axilite port=z_sm 
+
+    Conv2D_3x3(x_sm, w_sm, b_sm, x_w, x_h, x_c, z_c, z_sm);
 }
 
-float get_w(float tensor[KERNEL_SIZE*KERNEL_SIZE], int row, int column)
-{
-    if (row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
-    {
-        printf("Error: get_w out of bound\n");
-        return 0;
-    }
-    else
-    {
-        return tensor[row * KERNEL_SIZE + column];
-    }
-}
-float get_W(float tensor[], int z_ch, int ch, int row, int column)
-{
-    if (z_ch < 0 || z_ch >= Z_CHANNEL || ch < 0 || ch >= W_CHANNEL || row < 0 || row >= W_SIZE || column < 0 || column >= W_SIZE)
-    {
-        printf("Error: get_W out of bound\n");
-        return 0;
-    }
-    else
-    {
-        return tensor[(z_ch * W_CHANNEL + ch) * W_SIZE * W_SIZE + (row * W_SIZE + column)];
-    }
-}
-float get_z(float tensor[], int ch, int row, int column)
-{
+
+
+
+
+
+// float get_x(float tensor[KERNEL_SIZE*KERNEL_SIZE],int row, int column)
+// {
+//     if (row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
+//     {
+//         printf("Error: get_x out of bound\n");
+//         return 0;
+//     }
+//     else
+//     {
+//         return tensor[row * KERNEL_SIZE + column];
+//     }
+// }
+// float get_X(float tensor[X_CHANNEL*X_SIZE*X_SIZE], int ch, int row, int column)
+// {
+
+//     if (ch < 0 || ch >= X_CHANNEL || row < 0 || row >= X_SIZE || column < 0 || column >= X_SIZE)
+//     {
+//         printf("Error: get_X out of bound\n");
+//         return 0;
+//     }
+//     else
+//     {
+//         return tensor[(ch * X_SIZE + row) * X_SIZE + column];
+//     }
+// }
+
+// float get_w(float tensor[KERNEL_SIZE*KERNEL_SIZE], int row, int column)
+// {
+//     if (row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
+//     {
+//         printf("Error: get_w out of bound\n");
+//         return 0;
+//     }
+//     else
+//     {
+//         return tensor[row * KERNEL_SIZE + column];
+//     }
+// }
+// float get_W(float tensor[], int z_ch, int ch, int row, int column)
+// {
+//     if (z_ch < 0 || z_ch >= Z_CHANNEL || ch < 0 || ch >= W_CHANNEL || row < 0 || row >= W_SIZE || column < 0 || column >= W_SIZE)
+//     {
+//         printf("Error: get_W out of bound\n");
+//         return 0;
+//     }
+//     else
+//     {
+//         return tensor[(z_ch * W_CHANNEL + ch) * W_SIZE * W_SIZE + (row * W_SIZE + column)];
+//     }
+// }
+// float get_z(float tensor[], int ch, int row, int column)
+// {
     
-}
+// }
