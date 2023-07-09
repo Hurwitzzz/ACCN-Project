@@ -1,1 +1,0 @@
-set ::AESL_AUTOSIM::gTopFileName /home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow/vitis_workflow2/solution1/./sim/autowrap/testbench/conv.cpp_pre.cpp.tb.cpp
