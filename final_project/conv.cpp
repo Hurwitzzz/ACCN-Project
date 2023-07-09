@@ -33,9 +33,8 @@ L4:                 for(int c = 0; c < in_c; c++) {
                         // load x for each kernel, and load w
                         for(int p = 0; p < KERNEL_SIZE; p++) {
                             for(int q = 0; q < KERNEL_SIZE; q++) {
-                                w[p][q] = w_sm[i][c][p][q];
-                                if (q > 0 && k ==0){
-                                    x[p][q] = in_sm[c][j + p][q - 1];
+                                get_w(w,p,q) = get_W(w_sm,i,c,p,q,in_c);  // w[p][q] = w_sm[i][c][p][q];   
+                                    get_in(x,p,q) =  get_IN(in_sm,c,(j+p),(q-1),in_w,in_h);      // x[p][q] = in_sm[c][j + p][q - 1];  
                                 }
                             }
                         }
@@ -43,8 +42,8 @@ L4:                 for(int c = 0; c < in_c; c++) {
                         for (int p = 0; p < KERNEL_SIZE; p++) {
                             for (int q = 0; q < KERNEL_SIZE; q++) {
                                 // reuse the data in BRAM
-                                x[p][q] = (q == KERNEL_SIZE - 1) ? in_sm[c][j + p][k + q] : x[p][q + 1];
-                                acc_kernel[p * KERNEL_SIZE + q] = x[p][q] * w[p][q];
+                                get_in(x,p,q) = (q == KERNEL_SIZE - 1) ? get_IN(in_sm,c,(j+p),(k+q)) : get_in(x,p,(q+1));   // x[p][q] = (q == KERNEL_SIZE - 1) ? in_sm[c][j + p][k + q] : x[p][q + 1];
+                                acc_kernel[p * KERNEL_SIZE + q] = get_in(x,p,q) * get_w(w,p,q); // x[p][q] * w[p][q];
                             }
                         }  
                         // sum up the result of each kernel
@@ -54,19 +53,18 @@ L4:                 for(int c = 0; c < in_c; c++) {
                     } 
                     // sum up the result of each channel
                     for(int c = 0; c < in_c; c++) {
-                        z[j][k] += acc_channel[c];
+                        get_z(z,j,k,in_w) += acc_channel[c]; // z[j][k] += acc_channel[c];
                     }
                     // add bias
-                    z[j][k] += b_sm[i];
+                    get_z(z,j,k,in_w) += b_sm[i]; // z[j][k] += b_sm[i];
             }
         }
         // send the result to out_sm (in DRAM)
         for(int j = 0; j < OUT_SIZE; j++) {
             for(int k = 0; k < OUT_SIZE; k++) {
-                out_sm[i][j][k] = z[j][k];
+                get_OUT(out_sm,i,j,k) = get_z(z,j,k); // out_sm[i][j][k] = z[j][k];
             }
         }
-    }
 }
 
 
@@ -100,57 +98,81 @@ void EntryConv(float in_sm[IN_CHANNEL*IN_SIZE*IN_SIZE],
         int row: 
         int column
 */
-// float get_x(float tensor[KERNEL_SIZE*KERNEL_SIZE],int row, int column)
-// {
-//     if (row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
-//     {
-//         printf("Error: get_x out of bound\n");
-//         return 0;
-//     }
-//     else
-//     {
-//         return tensor[row * KERNEL_SIZE + column];
-//     }
-// }
-// float get_X(float tensor[IN_CHANNEL*IN_SIZE*IN_SIZE], int ch, int row, int column)
-// {
 
-//     if (ch < 0 || ch >= IN_CHANNEL || row < 0 || row >= IN_SIZE || column < 0 || column >= IN_SIZE)
-//     {
-//         printf("Error: get_X out of bound\n");
-//         return 0;
-//     }
-//     else
-//     {
-//         return tensor[(ch * IN_SIZE + row) * IN_SIZE + column];
-//     }
-// }
+// will memory be allocated when compiling? If yes, these functions waste too much memory
 
-// float get_w(float tensor[KERNEL_SIZE*KERNEL_SIZE], int row, int column)
-// {
-//     if (row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
-//     {
-//         printf("Error: get_w out of bound\n");
-//         return 0;
-//     }
-//     else
-//     {
-//         return tensor[row * KERNEL_SIZE + column];
-//     }
-// }
-// float get_W(float tensor[], int z_ch, int ch, int row, int column)
-// {
-//     if (z_ch < 0 || z_ch >= OUT_CHANNEL || ch < 0 || ch >= W_CHANNEL || row < 0 || row >= W_SIZE || column < 0 || column >= W_SIZE)
-//     {
-//         printf("Error: get_W out of bound\n");
-//         return 0;
-//     }
-//     else
-//     {
-//         return tensor[(z_ch * W_CHANNEL + ch) * W_SIZE * W_SIZE + (row * W_SIZE + column)];
-//     }
-// }
-// float get_z(float tensor[], int ch, int row, int column)
-// {
-    
-// }
+float get_in(float tensor[KERNEL_SIZE*KERNEL_SIZE],int row, int column)
+{
+    if (row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
+    {
+        printf("Error: get_x out of bound\n");
+        return 0;
+    }
+    else
+    {
+        return tensor[row * KERNEL_SIZE + column];
+    }
+}
+float get_IN(float tensor[IN_CHANNEL*IN_SIZE*IN_SIZE], int ch, int row, int column, int in_w, int in_h)
+{
+
+    if (ch < 0 || ch >= IN_CHANNEL || row < 0 || row >= IN_SIZE || column < 0 || column >= IN_SIZE)
+    {
+        printf("Error: get_X out of bound\n");
+        return 0;
+    }
+    else
+    {
+        return tensor[(ch * in_h + row) * in_w + column];
+    }
+}
+
+float get_w(float tensor[KERNEL_SIZE*KERNEL_SIZE], int row, int column)
+{
+    if (row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
+    {
+        printf("Error: get_w out of bound\n");
+        return 0;
+    }
+    else
+    {
+        return tensor[row * KERNEL_SIZE + column];
+    }
+}
+float get_W(float tensor[OUT_CHANNEL * IN_CHANNEL * KERNEL_SIZE * KERNEL_SIZE], int z_ch, int ch, int row, int column, int in_c)
+{
+    if (z_ch < 0 || z_ch >= OUT_CHANNEL || ch < 0 || ch >= W_CHANNEL || row < 0 || row >= W_SIZE || column < 0 || column >= W_SIZE)
+    {
+        printf("Error: get_W out of bound\n");
+        return 0;
+    }
+    else
+    {
+        return tensor[(z_ch * in_c + ch) * KERNEL_SIZE * KERNEL_SIZE + (row * KERNEL_SIZE + column)];
+    }
+}
+float get_z(float tensor[OUT_SIZE * OUT_SIZE], int row, int column, int in_w)
+{
+    if (row < 0 || row >= OUT_SIZE || column < 0 || column >= OUT_SIZE)
+    {
+        printf("Error: get_z out of bound\n");
+        return 0;
+    }
+    else
+    {
+        return tensor[row * in_w + column];
+    }
+}
+
+float get_OUT(float tensor[OUT_CHANNEL*OUT_SIZE*OUT_SIZE], int ch, int row, int column, int out_w)
+{
+    if (ch < 0 || ch >= OUT_CHANNEL || row < 0 || row >= OUT_SIZE || column < 0 || column >= OUT_SIZE)
+    {
+        printf("Error: get_OUT out of bound\n");
+        return 0;
+    }
+    else
+    {
+        return tensor[(ch * out_w + row) * out_w + column];
+    }
+}
