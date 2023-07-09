@@ -88,13 +88,12 @@ float b_sm[B_CHANNEL],
 int x_w, int x_h, int x_c, int z_c, 
 float z_sm[Z_CHANNEL][Z_SIZE][Z_SIZE])
 {
-{
-    #pragma HLS INTERFACE m_axi port=x_sm, w_sm depth = 512
+    #pragma HLS INTERFACE m_axi port=x_sm,w_sm depth = 512
     #pragma HLS INTERFACE m_axi port=b_sm depth = 10
     #pragma HLS INTERFACE m_axi port=z_sm depth = 512
 
     #pragma HLS INTERFACE s_axilite port=return
-    #pragma HLS INTERFACE s_axilite port=x_sm w_sm 
+    #pragma HLS INTERFACE s_axilite port=x_sm,w_sm
     #pragma HLS INTERFACE s_axilite port=b_sm 
     #pragma HLS INTERFACE s_axilite port=z_sm 
 
