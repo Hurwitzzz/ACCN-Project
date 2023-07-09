@@ -15,51 +15,67 @@ void Conv2D_3x3(float x_sm[X_CHANNEL][X_SIZE][X_SIZE],
 float w_sm[W_CHANNEL][KERNEL_SIZE][KERNEL_SIZE][KERNEL_SIZE], 
 float b_sm[B_CHANNEL], 
 int x_w, int x_h, int x_c, int z_c, 
-float z_out[Z_CHANNEL][Z_SIZE][Z_SIZE])
+float z_sm[Z_CHANNEL][Z_SIZE][Z_SIZE])
 {
 
     // Initialize output tensor to zero
     for(int i = 0; i < z_c; i++){
         for(int j = 0; j < Z_SIZE; j++){
             for(int k = 0; k < Z_SIZE; k++){
-                z_out[i][j][k] = 0;
+                z_sm[i][j][k] = 0;
             }
         }
     }
 
-    /* access data in DRAM to BRAM*/
+    /* Store in BRAM */
     float x[KERNEL_SIZE][KERNEL_SIZE];
     float w[KERNEL_SIZE][KERNEL_SIZE];
+    float b[B_CHANNEL];
+    float z[Z_SIZE][Z_SIZE]; // due to the limitation of BRAM, we can only store one channel of z
 
     // Perform convolution
-    for(int i = 0; i < z_c; i++) {
-        for(int j = 0; j < Z_SIZE; j++) {
-            for(int k = 0; k < Z_SIZE; k++) {
-                // create buffer for each kernel_size conv
-                float acc_kernel[KERNEL_SIZE * KERNEL_SIZE];
-                for(int c = 0; c < x_c; c++) {
+L1:    for(int i = 0; i < z_c; i++) {
+L2:        for(int j = 0; j < Z_SIZE; j++) {
+L3:             for(int k = 0; k < Z_SIZE; k++) {
 
-                    // load x for each kernel, and load w
-                    for(int p = 0; p < KERNEL_SIZE; p++) {
-                        for(int q = 0; q < KERNEL_SIZE; q++) {
-                            w[p][q] = w_sm[i][c][p][q];
-                            if (q > 0 && k ==0){
-                                x[p][q] = x_sm[c][j + p][q - 1];
+                    float acc_channel[X_CHANNEL];      // create buffer for each channel  
+                    float acc_kernel[KERNEL_SIZE * KERNEL_SIZE]; // create buffer for each kernel_size conv        
+L4:                 for(int c = 0; c < x_c; c++) {
+#pragma HLS PIPELINE II=1
+                        // load x for each kernel, and load w
+                        for(int p = 0; p < KERNEL_SIZE; p++) {
+                            for(int q = 0; q < KERNEL_SIZE; q++) {
+                                w[p][q] = w_sm[i][c][p][q];
+                                if (q > 0 && k ==0){
+                                    x[p][q] = x_sm[c][j + p][q - 1];
+                                }
                             }
                         }
-                    }
 
-                    for (int p = 0; p < KERNEL_SIZE; p++) {
-                        for (int q = 0; q < KERNEL_SIZE; q++) {
-                            // reuse the data in BRAM
-                            x[p][q] = (q == KERNEL_SIZE - 1) ? x_sm[c][j + p][k + q] : x[p][q + 1];
-                            acc_kernel[p * KERNEL_SIZE + q] = x[p][q] * w[p][q];
-                        }
+                        for (int p = 0; p < KERNEL_SIZE; p++) {
+                            for (int q = 0; q < KERNEL_SIZE; q++) {
+                                // reuse the data in BRAM
+                                x[p][q] = (q == KERNEL_SIZE - 1) ? x_sm[c][j + p][k + q] : x[p][q + 1];
+                                acc_kernel[p * KERNEL_SIZE + q] = x[p][q] * w[p][q];
+                            }
+                        }  
+                        // sum up the result of each kernel
+                        for(int p = 0; p < KERNEL_SIZE * KERNEL_SIZE; p++) {
+                            acc_channel[c] += acc_kernel[p];
+                        } 
+                    } 
+                    // sum up the result of each channel
+                    for(int c = 0; c < x_c; c++) {
+                        z[j][k] += acc_channel[c];
                     }
-
-                    
-                }
-                z_out[i][j][k] += b_sm[i];
+                    // add bias
+                    z[j][k] += b_sm[i];
+            }
+        }
+        // send the result to z_sm (in DRAM)
+        for(int j = 0; j < Z_SIZE; j++) {
+            for(int k = 0; k < Z_SIZE; k++) {
+                z_sm[i][j][k] = z[j][k];
             }
         }
     }
