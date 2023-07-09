@@ -1,0 +1,14 @@
+#-----------------------------------------------------------
+# Vivado v2023.1 (64-bit)
+# SW Build 3865809 on Sun May  7 15:04:56 MDT 2023
+# IP Build 3864474 on Sun May  7 20:36:21 MDT 2023
+# SharedData Build 3865790 on Sun May 07 13:33:03 MDT 2023
+# Start of session at: Sun Jul  9 00:33:32 2023
+# Process ID: 22383
+# Current directory: /home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow/vitis/solution1/impl/ip
+# Command line: vivado -notrace -mode batch -source run_ippack.tcl
+# Log file: /home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow/vitis/solution1/impl/ip/vivado.log
+# Journal file: /home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow/vitis/solution1/impl/ip/vivado.jou
+# Running On: gandalfvoid, OS: Linux, CPU Frequency: 1517.972 MHz, CPU Physical cores: 16, Host memory: 16108 MB
+#-----------------------------------------------------------
+source run_ippack.tcl -notrace

@@ -1,0 +1,11 @@
+<pragmas>
+<pragma file="conv.cpp" line="28" pragmaType="interface" parentfunction="EntryConv" mode="m_axi" port="W" bundle="" offset="" name="" depth="-1" num_read_outstanding="-1" num_write_outstanding="-1" max_burst_read_length="-1" max_burst_write_length="-1" latency="-1" max_widen_bitwidth="-1" channel=""/>
+<pragma file="conv.cpp" line="28" pragmaType="interface" parentfunction="EntryConv" mode="m_axi" port="X" bundle="" offset="" name="" depth="-1" num_read_outstanding="-1" num_write_outstanding="-1" max_burst_read_length="-1" max_burst_write_length="-1" latency="-1" max_widen_bitwidth="-1" channel=""/>
+<pragma file="conv.cpp" line="29" pragmaType="interface" parentfunction="EntryConv" mode="m_axi" port="Z" bundle="" offset="" name="" depth="-1" num_read_outstanding="-1" num_write_outstanding="-1" max_burst_read_length="-1" max_burst_write_length="-1" latency="-1" max_widen_bitwidth="-1" channel=""/>
+<pragma file="conv.cpp" line="30" pragmaType="interface" parentfunction="EntryConv" mode="s_axilite" port="" bundle="" offset="-1" name="" clock="" impl="" register="0"/>
+<pragma file="conv.cpp" line="31" pragmaType="interface" parentfunction="EntryConv" mode="s_axilite" port="W" bundle="" offset="-1" name="" clock="" impl="" register="0"/>
+<pragma file="conv.cpp" line="31" pragmaType="interface" parentfunction="EntryConv" mode="s_axilite" port="X" bundle="" offset="-1" name="" clock="" impl="" register="0"/>
+<pragma file="conv.cpp" line="32" pragmaType="interface" parentfunction="EntryConv" mode="s_axilite" port="Z" bundle="" offset="-1" name="" clock="" impl="" register="0"/>
+<pragma file="conv.cpp" line="14" pragmaType="pipeline" parentfunction="conv1D" off="0" ii="1" rewind="0" style=""/>
+<pragma file="conv.cpp" line="17" pragmaType="unroll" parentfunction="conv1D" factor="-1" skip_exit_check="0"/>
+</pragmas>

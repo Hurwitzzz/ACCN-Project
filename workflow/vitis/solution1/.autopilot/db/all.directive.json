@@ -1,0 +1,23 @@
+[
+  {
+    "functionLabel": "",
+    "functionName": "EntryConv",
+    "id": 0,
+    "ifcond": "",
+    "insert_position": "",
+    "label": "",
+    "pragma": {
+      "name": "TOP",
+      "option": [
+        {
+          "name": "name",
+          "value": "EntryConv"
+        }
+      ]
+    },
+    "slx": false,
+    "sourceFile": "/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow/vitis_workflow2/solution1/csynth.tcl",
+    "sourceLine": 16,
+    "success": true
+  }
+]

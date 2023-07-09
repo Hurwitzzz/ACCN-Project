@@ -1,0 +1,723 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cdfg:DBCdfg xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cdfg="http://www.autoesl.com/DBCdfg" timeStamp="1688853842636">
+  <ports id="1" name="x_2_030_reload" type="PortType" coreId="3621216858" bitwidth="32">
+    <dataOutputObjs>read</dataOutputObjs>
+  </ports>
+  <ports id="2" name="x_1_029_reload" type="PortType" coreId="639657324" bitwidth="32">
+    <dataOutputObjs>read</dataOutputObjs>
+  </ports>
+  <ports id="3" name="gmem" type="PortType" coreId="2190101648" bitwidth="32" direction="DirInOut" iftype="IfTypeFifo">
+    <dataInputObjs>getelementptr</dataInputObjs>
+    <dataInputObjs>getelementptr</dataInputObjs>
+    <dataOutputObjs>getelementptr</dataOutputObjs>
+    <dataOutputObjs>getelementptr</dataOutputObjs>
+  </ports>
+  <ports id="4" name="sext_ln13_1" type="PortType" coreId="2190101648" bitwidth="62">
+    <dataOutputObjs>read</dataOutputObjs>
+  </ports>
+  <ports id="5" name="sext_ln13" type="PortType" coreId="1919907685" bitwidth="62">
+    <dataOutputObjs>read</dataOutputObjs>
+  </ports>
+  <ports id="6" name="w_0_031_reload" type="PortType" coreId="2190101648" bitwidth="32">
+    <dataOutputObjs>read</dataOutputObjs>
+  </ports>
+  <ports id="7" name="w_1_032_reload" type="PortType" coreId="2190007216" bitwidth="32">
+    <dataOutputObjs>read</dataOutputObjs>
+  </ports>
+  <ports id="8" name="w_2_033_reload" type="PortType" coreId="2190062112" bitwidth="32">
+    <dataOutputObjs>read</dataOutputObjs>
+  </ports>
+  <edges id="62" source_obj="//@ports.7" sink_obj="//@blocks.0/@node_objs.3"/>
+  <edges id="64" source_obj="//@ports.6" sink_obj="//@blocks.0/@node_objs.4"/>
+  <edges id="66" source_obj="//@ports.5" sink_obj="//@blocks.0/@node_objs.5"/>
+  <edges id="69" source_obj="//@ports.4" sink_obj="//@blocks.0/@node_objs.6"/>
+  <edges id="71" source_obj="//@ports.3" sink_obj="//@blocks.0/@node_objs.7"/>
+  <edges id="73" source_obj="//@ports.1" sink_obj="//@blocks.0/@node_objs.8"/>
+  <edges id="75" source_obj="//@ports.0" sink_obj="//@blocks.0/@node_objs.9"/>
+  <edges id="76" source_obj="//@blocks.0/@node_objs.6" sink_obj="//@blocks.0/@node_objs.10"/>
+  <edges id="77" source_obj="//@blocks.0/@node_objs.7" sink_obj="//@blocks.0/@node_objs.11"/>
+  <edges id="78" source_obj="//@blocks.0/@node_objs.9" sink_obj="//@blocks.0/@node_objs.12"/>
+  <edges id="79" source_obj="//@blocks.0/@node_objs.2" sink_obj="//@blocks.0/@node_objs.12"/>
+  <edges id="82" source_obj="//@blocks.0/@node_objs.1" sink_obj="//@blocks.0/@node_objs.13"/>
+  <edges id="83" source_obj="//@blocks.0/@node_objs.8" sink_obj="//@blocks.0/@node_objs.14"/>
+  <edges id="84" source_obj="//@blocks.0/@node_objs.0" sink_obj="//@blocks.0/@node_objs.14"/>
+  <edges id="85" edge_type="CtrlEdge" source_obj="//@regions.0/@basic_blocks.0" sink_obj="//@blocks.0/@node_objs.15"/>
+  <edges id="86" source_obj="//@blocks.0/@node_objs.1" sink_obj="//@regions.0/@basic_blocks.0/@node_objs.0"/>
+  <edges id="87" source_obj="//@blocks.0/@node_objs.2" sink_obj="//@regions.0/@basic_blocks.0/@node_objs.1"/>
+  <edges id="88" source_obj="//@ports.2" sink_obj="//@regions.0/@basic_blocks.0/@node_objs.2"/>
+  <edges id="89" source_obj="//@blocks.0/@node_objs.11" sink_obj="//@regions.0/@basic_blocks.0/@node_objs.2"/>
+  <edges id="90" source_obj="//@ports.2" sink_obj="//@regions.0/@basic_blocks.0/@node_objs.3"/>
+  <edges id="91" source_obj="//@blocks.0/@node_objs.10" sink_obj="//@regions.0/@basic_blocks.0/@node_objs.3"/>
+  <edges id="92" source_obj="//@regions.0/@basic_blocks.0/@node_objs.0" sink_obj="//@regions.0/@basic_blocks.0/@node_objs.4"/>
+  <edges id="95" source_obj="//@regions.0/@basic_blocks.0/@node_objs.0" sink_obj="//@regions.0/@basic_blocks.0/@node_objs.5"/>
+  <edges id="98" source_obj="//@regions.0/@basic_blocks.0/@node_objs.4" sink_obj="//@regions.0/@basic_blocks.0/@node_objs.6"/>
+  <edges id="99" edge_type="CtrlEdge" source_obj="//@regions.0/@basic_blocks.1" sink_obj="//@regions.0/@basic_blocks.0/@node_objs.6"/>
+  <edges id="100" edge_type="CtrlEdge" source_obj="//@blocks.1" sink_obj="//@regions.0/@basic_blocks.0/@node_objs.6"/>
+  <edges id="101" source_obj="//@blocks.0/@node_objs.0" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.0"/>
+  <edges id="102" source_obj="//@regions.0/@basic_blocks.1/@node_objs.0" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.1"/>
+  <edges id="103" source_obj="//@blocks.0/@node_objs.5" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.1"/>
+  <edges id="104" source_obj="//@regions.0/@basic_blocks.0/@node_objs.1" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.2"/>
+  <edges id="105" source_obj="//@blocks.0/@node_objs.4" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.2"/>
+  <edges id="108" source_obj="//@regions.0/@basic_blocks.0/@node_objs.3" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.3"/>
+  <edges id="109" source_obj="//@regions.0/@basic_blocks.1/@node_objs.3" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.4"/>
+  <edges id="110" source_obj="//@regions.0/@basic_blocks.1/@node_objs.4" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.5"/>
+  <edges id="111" source_obj="//@blocks.0/@node_objs.3" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.5"/>
+  <edges id="112" source_obj="//@regions.0/@basic_blocks.1/@node_objs.1" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.6"/>
+  <edges id="113" source_obj="//@regions.0/@basic_blocks.1/@node_objs.2" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.6"/>
+  <edges id="114" source_obj="//@regions.0/@basic_blocks.1/@node_objs.6" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.7"/>
+  <edges id="115" source_obj="//@regions.0/@basic_blocks.1/@node_objs.5" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.7"/>
+  <edges id="116" source_obj="//@regions.0/@basic_blocks.1/@node_objs.7" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.8"/>
+  <edges id="119" source_obj="//@regions.0/@basic_blocks.0/@node_objs.2" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.9"/>
+  <edges id="120" source_obj="//@regions.0/@basic_blocks.1/@node_objs.8" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.9"/>
+  <edges id="123" source_obj="//@regions.0/@basic_blocks.1/@node_objs.4" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.10"/>
+  <edges id="124" source_obj="//@blocks.0/@node_objs.2" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.10"/>
+  <edges id="125" source_obj="//@regions.0/@basic_blocks.0/@node_objs.5" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.11"/>
+  <edges id="126" source_obj="//@blocks.0/@node_objs.1" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.11"/>
+  <edges id="127" source_obj="//@regions.0/@basic_blocks.0/@node_objs.1" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.12"/>
+  <edges id="128" source_obj="//@blocks.0/@node_objs.0" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.12"/>
+  <edges id="129" edge_type="CtrlEdge" source_obj="//@regions.0/@basic_blocks.0" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.13"/>
+  <edges id="177" edge_type="CtrlEdge" source_obj="//@blocks.0" sink_obj="//@regions.0/@basic_blocks.0"/>
+  <edges id="178" edge_type="CtrlEdge" source_obj="//@regions.0/@basic_blocks.0" sink_obj="//@blocks.1"/>
+  <edges id="179" edge_type="CtrlEdge" source_obj="//@regions.0/@basic_blocks.0" sink_obj="//@regions.0/@basic_blocks.1"/>
+  <edges id="180" edge_type="CtrlEdge" source_obj="//@regions.0/@basic_blocks.1" sink_obj="//@regions.0/@basic_blocks.0" is_back_edge="1"/>
+  <edges id="181" edge_type="VirtEdge" source_obj="//@regions.0/@basic_blocks.1/@node_objs.0" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.12"/>
+  <edges id="182" edge_type="VirtEdge" source_obj="//@blocks.0/@node_objs.12" sink_obj="//@regions.0/@basic_blocks.0/@node_objs.1"/>
+  <edges id="183" edge_type="VirtEdge" source_obj="//@blocks.0/@node_objs.13" sink_obj="//@regions.0/@basic_blocks.0/@node_objs.0"/>
+  <edges id="184" edge_type="VirtEdge" source_obj="//@blocks.0/@node_objs.12" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.10"/>
+  <edges id="185" edge_type="VirtEdge" source_obj="//@blocks.0/@node_objs.13" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.11"/>
+  <edges id="186" edge_type="VirtEdge" source_obj="//@blocks.0/@node_objs.14" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.0"/>
+  <edges id="187" edge_type="VirtEdge" source_obj="//@blocks.0/@node_objs.14" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.12"/>
+  <edges id="188" edge_type="VirtEdge" source_obj="//@regions.0/@basic_blocks.0/@node_objs.0" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.11"/>
+  <edges id="189" edge_type="VirtEdge" source_obj="//@regions.0/@basic_blocks.0/@node_objs.1" sink_obj="//@regions.0/@basic_blocks.1/@node_objs.10"/>
+  <edges id="-88" source_obj="//@regions.0/@basic_blocks.0/@node_objs.2" sink_obj="//@ports.2"/>
+  <edges id="-90" source_obj="//@regions.0/@basic_blocks.0/@node_objs.3" sink_obj="//@ports.2"/>
+  <blocks id="26" name="newFuncRoot" type="BlockType">
+    <controlOutputObjs>for.body16.i</controlOutputObjs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="9" name="empty" coreId="768" bitwidth="32" opcode="alloca" m_display="0" m_topoIndex="1" m_clusterGroupNumber="-1">
+      <dataOutputObjs>store</dataOutputObjs>
+      <dataOutputObjs>load</dataOutputObjs>
+      <dataOutputObjs>store</dataOutputObjs>
+      <constName>empty</constName>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="10" name="i_1" originalName="i" coreId="2190125584" bitwidth="7" opcode="alloca" m_display="0" m_topoIndex="2" m_clusterGroupNumber="-1">
+      <dataOutputObjs>store</dataOutputObjs>
+      <dataOutputObjs>load</dataOutputObjs>
+      <dataOutputObjs>store</dataOutputObjs>
+      <constName>empty</constName>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="11" name="empty_25" coreId="0" bitwidth="32" opcode="alloca" m_display="0" m_topoIndex="3" m_clusterGroupNumber="-1">
+      <dataOutputObjs>store</dataOutputObjs>
+      <dataOutputObjs>load</dataOutputObjs>
+      <dataOutputObjs>store</dataOutputObjs>
+      <constName>empty</constName>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="12" name="w_2_033_reload_read" coreId="0" bitwidth="32" opcode="read" m_display="0" m_topoIndex="4" m_clusterGroupNumber="-1">
+      <dataInputObjs>w_2_033_reload</dataInputObjs>
+      <dataOutputObjs>fmul</dataOutputObjs>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="13" name="w_1_032_reload_read" coreId="0" bitwidth="32" opcode="read" m_display="0" m_topoIndex="5" m_clusterGroupNumber="-1">
+      <dataInputObjs>w_1_032_reload</dataInputObjs>
+      <dataOutputObjs>fmul</dataOutputObjs>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="14" name="w_0_031_reload_read" coreId="0" bitwidth="32" opcode="read" m_display="0" m_topoIndex="6" m_clusterGroupNumber="-1">
+      <dataInputObjs>w_0_031_reload</dataInputObjs>
+      <dataOutputObjs>fmul</dataOutputObjs>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="15" name="sext_ln13_read" coreId="2190135328" bitwidth="62" opcode="read" m_display="0" m_topoIndex="7" m_clusterGroupNumber="-1">
+      <dataInputObjs>sext_ln13</dataInputObjs>
+      <dataOutputObjs>sext</dataOutputObjs>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="16" name="sext_ln13_1_read" coreId="1967989248" bitwidth="62" opcode="read" m_display="0" m_topoIndex="8" m_clusterGroupNumber="-1">
+      <dataInputObjs>sext_ln13_1</dataInputObjs>
+      <dataOutputObjs>sext</dataOutputObjs>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="17" name="x_1_029_reload_read" coreId="2190136464" bitwidth="32" opcode="read" m_display="0" m_topoIndex="9" m_clusterGroupNumber="-1">
+      <dataInputObjs>x_1_029_reload</dataInputObjs>
+      <dataOutputObjs>store</dataOutputObjs>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="18" name="x_2_030_reload_read" coreId="1958908891" bitwidth="32" opcode="read" m_display="0" m_topoIndex="10" m_clusterGroupNumber="-1">
+      <dataInputObjs>x_2_030_reload</dataInputObjs>
+      <dataOutputObjs>store</dataOutputObjs>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="19" name="sext_ln13_cast" coreId="1397508187" bitwidth="64" opcode="sext" m_display="0" m_topoIndex="11" m_clusterGroupNumber="-1">
+      <dataInputObjs>read</dataInputObjs>
+      <dataOutputObjs>getelementptr</dataOutputObjs>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="20" name="sext_ln13_1_cast" coreId="2190131136" bitwidth="64" opcode="sext" m_display="0" m_topoIndex="12" m_clusterGroupNumber="-1">
+      <dataInputObjs>read</dataInputObjs>
+      <dataOutputObjs>getelementptr</dataOutputObjs>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="22" name="empty_25_write_ln0" coreId="0" opcode="store" m_display="0" m_delay="1.58" m_topoIndex="13" m_clusterGroupNumber="-1">
+      <dataInputObjs>read</dataInputObjs>
+      <dataInputObjs>alloca</dataInputObjs>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="23" name="i_1_write_ln0" coreId="2190054400" opcode="store" m_display="0" m_delay="1.58" m_topoIndex="14" m_clusterGroupNumber="-1">
+      <dataInputObjs>alloca</dataInputObjs>
+      <constName>empty</constName>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="24" name="empty_write_ln0" coreId="0" opcode="store" m_display="0" m_delay="1.58" m_topoIndex="15" m_clusterGroupNumber="-1">
+      <dataInputObjs>read</dataInputObjs>
+      <dataInputObjs>alloca</dataInputObjs>
+    </node_objs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="25" name="br_ln0" coreId="784" opcode="br" m_display="0" m_topoIndex="16" m_clusterGroupNumber="-1">
+      <controlInputObjs>for.body16.i</controlInputObjs>
+    </node_objs>
+  </blocks>
+  <blocks id="55" name="_Z6conv1DPKfS0_Pf.exit.exitStub" type="BlockType">
+    <controlInputObjs>for.body16.i</controlInputObjs>
+    <controlOutputObjs>br</controlOutputObjs>
+    <node_objs xsi:type="cdfg:CdfgNode" id="54" name="_ln0" coreId="2190244568" opcode="ret" nodeLabel="15.0" m_display="0" m_topoIndex="35" m_clusterGroupNumber="-1"/>
+  </blocks>
+  <regions anchor_node="-1" region_type="8" interval="1" typeName="Pipeline" iiViolation="" id="224" pipe_depth="17" RegionName="OL">
+    <basic_blocks id="35" name="for.body16.i" type="BlockType">
+      <controlInputObjs>newFuncRoot</controlInputObjs>
+      <controlInputObjs>for.body16.i.split</controlInputObjs>
+      <controlOutputObjs>br</controlOutputObjs>
+      <controlOutputObjs>br</controlOutputObjs>
+      <controlOutputObjs>_Z6conv1DPKfS0_Pf.exit.exitStub</controlOutputObjs>
+      <controlOutputObjs>for.body16.i.split</controlOutputObjs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="27" name="i" lineNumber="13" originalName="i" fileName="conv.cpp" fileDirectory="../." coreId="2190255472" contextFuncName="conv1D" bitwidth="7" opcode="load" m_display="0" m_topoIndex="17" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="13" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>alloca</dataInputObjs>
+        <dataOutputObjs>icmp</dataOutputObjs>
+        <dataOutputObjs>add</dataOutputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="28" name="p_load" lineNumber="19" fileName="conv.cpp" fileDirectory="../." coreId="78" contextFuncName="conv1D" bitwidth="32" opcode="load" nodeLabel="2.0" m_display="0" m_topoIndex="24" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="19" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>alloca</dataInputObjs>
+        <dataOutputObjs>fmul</dataOutputObjs>
+        <dataOutputObjs>store</dataOutputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="30" name="gmem_addr" lineNumber="13" fileName="conv.cpp" fileDirectory="../." coreId="0" contextFuncName="conv1D" bitwidth="32" opcode="getelementptr" nodeLabel="15.0" m_display="0" m_topoIndex="34" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="13" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>gmem</dataInputObjs>
+        <dataInputObjs>sext</dataInputObjs>
+        <dataOutputObjs>write</dataOutputObjs>
+        <dataOutputObjs>gmem</dataOutputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="31" name="gmem_addr_2" lineNumber="13" fileName="conv.cpp" fileDirectory="../." coreId="0" contextFuncName="conv1D" bitwidth="32" opcode="getelementptr" nodeLabel="1.0" m_display="0" m_topoIndex="22" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="13" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>gmem</dataInputObjs>
+        <dataInputObjs>sext</dataInputObjs>
+        <dataOutputObjs>read</dataOutputObjs>
+        <dataOutputObjs>gmem</dataOutputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="32" name="icmp_ln13" lineNumber="13" fileName="conv.cpp" fileDirectory="../." rtlName="icmp_ln13_fu_175_p2" coreName="Cmp" implIndex="auto" control="no" opType="icmp" coreId="9" contextFuncName="conv1D" bitwidth="1" opcode="icmp" m_display="0" m_delay="1.87" m_topoIndex="18" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="13" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>load</dataInputObjs>
+        <dataOutputObjs>br</dataOutputObjs>
+        <constName>empty</constName>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="33" name="add_ln13" lineNumber="13" fileName="conv.cpp" fileDirectory="../." rtlName="add_ln13_fu_181_p2" coreName="Adder" implIndex="fabric" control="no" opType="add" coreId="1" contextFuncName="conv1D" bitwidth="7" opcode="add" m_display="0" m_delay="1.87" m_topoIndex="19" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="13" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>load</dataInputObjs>
+        <dataOutputObjs>store</dataOutputObjs>
+        <constName>empty</constName>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="34" name="br_ln13" lineNumber="13" fileName="conv.cpp" fileDirectory="../." coreId="2190204704" contextFuncName="conv1D" opcode="br" m_display="0" m_topoIndex="20" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="13" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>icmp</dataInputObjs>
+        <controlInputObjs>for.body16.i.split</controlInputObjs>
+        <controlInputObjs>_Z6conv1DPKfS0_Pf.exit.exitStub</controlInputObjs>
+      </node_objs>
+      <fileValidLineNumbers fileName="conv.cpp">
+        <validLinenumbers>13</validLinenumbers>
+        <validLinenumbers>19</validLinenumbers>
+        <validLinenumbers>33</validLinenumbers>
+      </fileValidLineNumbers>
+    </basic_blocks>
+    <basic_blocks id="53" name="for.body16.i.split" type="BlockType">
+      <controlInputObjs>for.body16.i</controlInputObjs>
+      <controlOutputObjs>br</controlOutputObjs>
+      <controlOutputObjs>for.body16.i</controlOutputObjs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="36" name="p_load10" lineNumber="19" fileName="conv.cpp" fileDirectory="../." coreId="1959007219" contextFuncName="conv1D" bitwidth="32" opcode="load" nodeLabel="2.0" m_display="0" m_topoIndex="25" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="19" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>alloca</dataInputObjs>
+        <dataOutputObjs>fmul</dataOutputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="40" name="acc" lineNumber="19" originalName="acc" fileName="conv.cpp" fileDirectory="../." rtlName="fmul_32ns_32ns_32_4_max_dsp_1_U11" coreName="FMul_maxdsp" implIndex="maxdsp" control="no" opType="fmul" coreId="30" contextFuncName="conv1D" bitwidth="32" opcode="fmul" nodeLabel="2.0" nodeLatency="3" m_display="0" m_delay="5.7" m_topoIndex="26" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="19" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>load</dataInputObjs>
+        <dataInputObjs>read</dataInputObjs>
+        <dataOutputObjs>fadd</dataOutputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="41" name="acc_1" lineNumber="19" originalName="acc" fileName="conv.cpp" fileDirectory="../." rtlName="fmul_32ns_32ns_32_4_max_dsp_1_U12" coreName="FMul_maxdsp" implIndex="maxdsp" control="no" opType="fmul" coreId="30" contextFuncName="conv1D" bitwidth="32" opcode="fmul" nodeLabel="2.0" nodeLatency="3" m_display="0" m_delay="5.7" m_topoIndex="27" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="19" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>load</dataInputObjs>
+        <dataInputObjs>read</dataInputObjs>
+        <dataOutputObjs>fadd</dataOutputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="42" name="gmem_addr_2_read" lineNumber="18" fileName="conv.cpp" fileDirectory="../." coreName="m_axi" implIndex="m_axi" control="no" opType="adapter" coreId="113" contextFuncName="conv1D" bitwidth="32" opcode="read" nodeLabel="1.0" m_display="0" m_delay="7.3" m_topoIndex="23" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="18" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>getelementptr</dataInputObjs>
+        <dataOutputObjs>bitcast</dataOutputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="43" name="bitcast_ln18" lineNumber="18" fileName="conv.cpp" fileDirectory="../." rtlName="grp_fu_145_p0" coreId="1959026964" contextFuncName="conv1D" bitwidth="32" opcode="bitcast" nodeLabel="2.0" m_display="0" m_topoIndex="28" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="18" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>read</dataInputObjs>
+        <dataOutputObjs>fmul</dataOutputObjs>
+        <dataOutputObjs>store</dataOutputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="44" name="acc_2" lineNumber="19" originalName="acc" fileName="conv.cpp" fileDirectory="../." rtlName="fmul_32ns_32ns_32_4_max_dsp_1_U13" coreName="FMul_maxdsp" implIndex="maxdsp" control="no" opType="fmul" coreId="30" contextFuncName="conv1D" bitwidth="32" opcode="fmul" nodeLabel="2.0" nodeLatency="3" m_display="0" m_delay="5.7" m_topoIndex="29" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="19" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>bitcast</dataInputObjs>
+        <dataInputObjs>read</dataInputObjs>
+        <dataOutputObjs>fadd</dataOutputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="45" name="add36_i" lineNumber="21" fileName="conv.cpp" fileDirectory="../." rtlName="fadd_32ns_32ns_32_5_full_dsp_1_U9" coreName="FAddSub_fulldsp" implIndex="fulldsp" control="no" opType="fadd" coreId="18" contextFuncName="conv1D" bitwidth="32" opcode="fadd" nodeLabel="6.0" nodeLatency="4" m_display="0" m_delay="7.25" m_topoIndex="32" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="21" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>fmul</dataInputObjs>
+        <dataInputObjs>fmul</dataInputObjs>
+        <dataOutputObjs>fadd</dataOutputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="46" name="add38_i" lineNumber="21" fileName="conv.cpp" fileDirectory="../." rtlName="fadd_32ns_32ns_32_5_full_dsp_1_U10" coreName="FAddSub_fulldsp" implIndex="fulldsp" control="no" opType="fadd" coreId="18" contextFuncName="conv1D" bitwidth="32" opcode="fadd" nodeLabel="11.0" nodeLatency="4" m_display="0" m_delay="7.25" m_topoIndex="33" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="21" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>fadd</dataInputObjs>
+        <dataInputObjs>fmul</dataInputObjs>
+        <dataOutputObjs>bitcast</dataOutputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="47" name="bitcast_ln21" lineNumber="21" fileName="conv.cpp" fileDirectory="../." rtlName="m_axi_gmem_WDATA" coreId="0" contextFuncName="conv1D" bitwidth="32" opcode="bitcast" nodeLabel="16.0" m_display="0" m_topoIndex="36" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="21" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>fadd</dataInputObjs>
+        <dataOutputObjs>write</dataOutputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="48" name="gmem_addr_write_ln21" lineNumber="21" fileName="conv.cpp" fileDirectory="../." coreName="m_axi" implIndex="m_axi" control="no" opType="adapter" coreId="113" contextFuncName="conv1D" opcode="write" nodeLabel="16.0" m_display="0" m_delay="7.3" m_topoIndex="37" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="21" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>getelementptr</dataInputObjs>
+        <dataInputObjs>bitcast</dataInputObjs>
+        <constName>empty</constName>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="49" name="empty_25_write_ln13" lineNumber="13" fileName="conv.cpp" fileDirectory="../." coreId="0" contextFuncName="conv1D" opcode="store" nodeLabel="2.0" m_display="0" m_delay="1.58" m_topoIndex="30" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="13" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>bitcast</dataInputObjs>
+        <dataInputObjs>alloca</dataInputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="50" name="i_1_write_ln13" lineNumber="13" fileName="conv.cpp" fileDirectory="../." coreId="2190026752" contextFuncName="conv1D" opcode="store" m_display="0" m_delay="1.58" m_topoIndex="21" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="13" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>add</dataInputObjs>
+        <dataInputObjs>alloca</dataInputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="51" name="empty_write_ln13" lineNumber="13" fileName="conv.cpp" fileDirectory="../." coreId="128" contextFuncName="conv1D" opcode="store" nodeLabel="2.0" m_display="0" m_delay="1.58" m_topoIndex="31" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="13" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <dataInputObjs>load</dataInputObjs>
+        <dataInputObjs>alloca</dataInputObjs>
+      </node_objs>
+      <node_objs xsi:type="cdfg:CdfgNode" id="52" name="br_ln13" lineNumber="13" fileName="conv.cpp" fileDirectory="../." coreId="2190029952" contextFuncName="conv1D" opcode="br" nodeLabel="16.0" m_display="0" m_topoIndex="38" m_clusterGroupNumber="-1">
+        <inlineStackInfo fileName="conv.cpp" linenumber="33" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="EntryConv"/>
+        <inlineStackInfo fileName="conv.cpp" linenumber="13" fileDirectory="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow" functionName="conv1D"/>
+        <controlInputObjs>for.body16.i</controlInputObjs>
+      </node_objs>
+      <fileValidLineNumbers fileName="conv.cpp">
+        <validLinenumbers>19</validLinenumbers>
+        <validLinenumbers>18</validLinenumbers>
+        <validLinenumbers>21</validLinenumbers>
+        <validLinenumbers>13</validLinenumbers>
+        <validLinenumbers>33</validLinenumbers>
+      </fileValidLineNumbers>
+    </basic_blocks>
+  </regions>
+  <ScheduleInfo time="0"/>
+  <ScheduleInfo time="1"/>
+  <ScheduleInfo time="2"/>
+  <ScheduleInfo time="3"/>
+  <ScheduleInfo time="4"/>
+  <ScheduleInfo time="5"/>
+  <ScheduleInfo time="6"/>
+  <ScheduleInfo time="7"/>
+  <ScheduleInfo time="8"/>
+  <ScheduleInfo time="9"/>
+  <ScheduleInfo time="10"/>
+  <ScheduleInfo time="11"/>
+  <ScheduleInfo time="12"/>
+  <ScheduleInfo time="13"/>
+  <ScheduleInfo time="14"/>
+  <ScheduleInfo time="15"/>
+  <ScheduleInfo time="16"/>
+  <regnodes realName="p_load_reg_284">
+    <nodeIds>28</nodeIds>
+  </regnodes>
+  <regnodes realName="add38_i_reg_324">
+    <nodeIds>46</nodeIds>
+  </regnodes>
+  <regnodes realName="empty_25_reg_243">
+    <nodeIds>11</nodeIds>
+  </regnodes>
+  <regnodes realName="w_2_033_reload_read_reg_250">
+    <nodeIds>12</nodeIds>
+  </regnodes>
+  <regnodes realName="acc_reg_299">
+    <nodeIds>40</nodeIds>
+  </regnodes>
+  <regnodes realName="bitcast_ln18_reg_294">
+    <nodeIds>43</nodeIds>
+  </regnodes>
+  <regnodes realName="i_1_reg_236">
+    <nodeIds>10</nodeIds>
+  </regnodes>
+  <regnodes realName="acc_2_reg_309">
+    <nodeIds>44</nodeIds>
+  </regnodes>
+  <regnodes realName="acc_1_reg_304">
+    <nodeIds>41</nodeIds>
+  </regnodes>
+  <regnodes realName="sext_ln13_1_cast_reg_270">
+    <nodeIds>20</nodeIds>
+  </regnodes>
+  <regnodes realName="w_1_032_reload_read_reg_255">
+    <nodeIds>13</nodeIds>
+  </regnodes>
+  <regnodes realName="p_load10_reg_289">
+    <nodeIds>36</nodeIds>
+  </regnodes>
+  <regnodes realName="w_0_031_reload_read_reg_260">
+    <nodeIds>14</nodeIds>
+  </regnodes>
+  <regnodes realName="add36_i_reg_314">
+    <nodeIds>45</nodeIds>
+  </regnodes>
+  <regnodes realName="empty_reg_229">
+    <nodeIds>9</nodeIds>
+  </regnodes>
+  <regnodes realName="sext_ln13_cast_reg_265">
+    <nodeIds>19</nodeIds>
+  </regnodes>
+  <regnodes realName="icmp_ln13_reg_275">
+    <nodeIds>32</nodeIds>
+  </regnodes>
+  <regnodes realName="gmem_addr_reg_319">
+    <nodeIds>30</nodeIds>
+  </regnodes>
+  <regnodes realName="gmem_addr_2_read_reg_279">
+    <nodeIds>42</nodeIds>
+  </regnodes>
+  <expressionNodes realName="empty_fu_62">
+    <nodeIds>9</nodeIds>
+  </expressionNodes>
+  <expressionNodes realName="gmem_addr_fu_220">
+    <nodeIds>30</nodeIds>
+  </expressionNodes>
+  <expressionNodes realName="bitcast_ln18_fu_206">
+    <nodeIds>43</nodeIds>
+  </expressionNodes>
+  <expressionNodes realName="empty_25_fu_70">
+    <nodeIds>11</nodeIds>
+  </expressionNodes>
+  <expressionNodes realName="add_ln13_fu_181">
+    <nodeIds>33</nodeIds>
+  </expressionNodes>
+  <expressionNodes realName="bitcast_ln21_fu_225">
+    <nodeIds>47</nodeIds>
+  </expressionNodes>
+  <expressionNodes realName="sext_ln13_1_cast_fu_153">
+    <nodeIds>20</nodeIds>
+  </expressionNodes>
+  <expressionNodes realName="i_1_fu_66">
+    <nodeIds>10</nodeIds>
+  </expressionNodes>
+  <expressionNodes realName="icmp_ln13_fu_175">
+    <nodeIds>32</nodeIds>
+  </expressionNodes>
+  <expressionNodes realName="gmem_addr_2_fu_192">
+    <nodeIds>31</nodeIds>
+  </expressionNodes>
+  <expressionNodes realName="sext_ln13_cast_fu_149">
+    <nodeIds>19</nodeIds>
+  </expressionNodes>
+  <moduleNodes realName="grp_fu_129">
+    <nodeIds>45</nodeIds>
+  </moduleNodes>
+  <moduleNodes realName="grp_fu_145">
+    <nodeIds>44</nodeIds>
+  </moduleNodes>
+  <moduleNodes realName="grp_fu_137">
+    <nodeIds>40</nodeIds>
+  </moduleNodes>
+  <moduleNodes realName="grp_fu_141">
+    <nodeIds>41</nodeIds>
+  </moduleNodes>
+  <moduleNodes realName="grp_fu_133">
+    <nodeIds>46</nodeIds>
+  </moduleNodes>
+  <ioNodes realName="w_1_032_reload_read_read_fu_80">
+    <nodeIds>13</nodeIds>
+  </ioNodes>
+  <ioNodes realName="i_load_fu_172">
+    <nodeIds>27</nodeIds>
+  </ioNodes>
+  <ioNodes realName="gmem_addr_2_read_read_fu_116">
+    <nodeIds>42</nodeIds>
+  </ioNodes>
+  <ioNodes realName="w_0_031_reload_read_read_fu_86">
+    <nodeIds>14</nodeIds>
+  </ioNodes>
+  <ioNodes realName="p_load10_load_fu_202">
+    <nodeIds>36</nodeIds>
+  </ioNodes>
+  <ioNodes realName="store_ln13_store_fu_210">
+    <nodeIds>49</nodeIds>
+  </ioNodes>
+  <ioNodes realName="store_ln0_store_fu_157">
+    <nodeIds>22</nodeIds>
+  </ioNodes>
+  <ioNodes realName="store_ln13_store_fu_187">
+    <nodeIds>50</nodeIds>
+  </ioNodes>
+  <ioNodes realName="x_1_029_reload_read_read_fu_104">
+    <nodeIds>17</nodeIds>
+  </ioNodes>
+  <ioNodes realName="sext_ln13_read_read_fu_92">
+    <nodeIds>15</nodeIds>
+  </ioNodes>
+  <ioNodes realName="p_load_load_fu_198">
+    <nodeIds>28</nodeIds>
+  </ioNodes>
+  <ioNodes realName="w_2_033_reload_read_read_fu_74">
+    <nodeIds>12</nodeIds>
+  </ioNodes>
+  <ioNodes realName="store_ln0_store_fu_167">
+    <nodeIds>24</nodeIds>
+  </ioNodes>
+  <ioNodes realName="write_ln21_write_fu_121">
+    <nodeIds>48</nodeIds>
+  </ioNodes>
+  <ioNodes realName="sext_ln13_1_read_read_fu_98">
+    <nodeIds>16</nodeIds>
+  </ioNodes>
+  <ioNodes realName="store_ln0_store_fu_162">
+    <nodeIds>23</nodeIds>
+  </ioNodes>
+  <ioNodes realName="store_ln13_store_fu_215">
+    <nodeIds>51</nodeIds>
+  </ioNodes>
+  <ioNodes realName="x_2_030_reload_read_read_fu_110">
+    <nodeIds>18</nodeIds>
+  </ioNodes>
+  <ioPorts name="gmem">
+    <contents name="read">
+      <nodeIds>42</nodeIds>
+    </contents>
+    <contents name="write">
+      <nodeIds>48</nodeIds>
+    </contents>
+  </ioPorts>
+  <ioPorts name="sext_ln13">
+    <contents name="read">
+      <nodeIds>15</nodeIds>
+    </contents>
+  </ioPorts>
+  <ioPorts name="sext_ln13_1">
+    <contents name="read">
+      <nodeIds>16</nodeIds>
+    </contents>
+  </ioPorts>
+  <ioPorts name="w_0_031_reload">
+    <contents name="read">
+      <nodeIds>14</nodeIds>
+    </contents>
+  </ioPorts>
+  <ioPorts name="w_1_032_reload">
+    <contents name="read">
+      <nodeIds>13</nodeIds>
+    </contents>
+  </ioPorts>
+  <ioPorts name="w_2_033_reload">
+    <contents name="read">
+      <nodeIds>12</nodeIds>
+    </contents>
+  </ioPorts>
+  <ioPorts name="x_1_029_reload">
+    <contents name="read">
+      <nodeIds>17</nodeIds>
+    </contents>
+  </ioPorts>
+  <ioPorts name="x_2_030_reload">
+    <contents name="read">
+      <nodeIds>18</nodeIds>
+    </contents>
+  </ioPorts>
+  <fsm>
+    <states id="1">
+      <operations id="9" stage="1" latency="1"/>
+      <operations id="10" stage="1" latency="1"/>
+      <operations id="11" stage="1" latency="1"/>
+      <operations id="12" stage="1" latency="1"/>
+      <operations id="13" stage="1" latency="1"/>
+      <operations id="14" stage="1" latency="1"/>
+      <operations id="15" stage="1" latency="1"/>
+      <operations id="16" stage="1" latency="1"/>
+      <operations id="17" stage="1" latency="1"/>
+      <operations id="18" stage="1" latency="1"/>
+      <operations id="19" stage="1" latency="1"/>
+      <operations id="20" stage="1" latency="1"/>
+      <operations id="21" stage="1" latency="1"/>
+      <operations id="22" stage="1" latency="1"/>
+      <operations id="23" stage="1" latency="1"/>
+      <operations id="24" stage="1" latency="1"/>
+      <operations id="25" stage="1" latency="1"/>
+      <operations id="27" stage="1" latency="1"/>
+      <operations id="32" stage="1" latency="1"/>
+      <operations id="33" stage="1" latency="1"/>
+      <operations id="34" stage="1" latency="1"/>
+      <operations id="50" stage="1" latency="1"/>
+    </states>
+    <states id="2">
+      <operations id="31" stage="1" latency="1"/>
+      <operations id="42" stage="1" latency="1"/>
+    </states>
+    <states id="3">
+      <operations id="28" stage="1" latency="1"/>
+      <operations id="36" stage="1" latency="1"/>
+      <operations id="40" stage="4" latency="4"/>
+      <operations id="41" stage="4" latency="4"/>
+      <operations id="43" stage="1" latency="1"/>
+      <operations id="44" stage="4" latency="4"/>
+      <operations id="49" stage="1" latency="1"/>
+      <operations id="51" stage="1" latency="1"/>
+    </states>
+    <states id="4">
+      <operations id="40" stage="3" latency="4"/>
+      <operations id="41" stage="3" latency="4"/>
+      <operations id="44" stage="3" latency="4"/>
+    </states>
+    <states id="5">
+      <operations id="40" stage="2" latency="4"/>
+      <operations id="41" stage="2" latency="4"/>
+      <operations id="44" stage="2" latency="4"/>
+    </states>
+    <states id="6">
+      <operations id="40" stage="1" latency="4"/>
+      <operations id="41" stage="1" latency="4"/>
+      <operations id="44" stage="1" latency="4"/>
+    </states>
+    <states id="7">
+      <operations id="45" stage="5" latency="5"/>
+    </states>
+    <states id="8">
+      <operations id="45" stage="4" latency="5"/>
+    </states>
+    <states id="9">
+      <operations id="45" stage="3" latency="5"/>
+    </states>
+    <states id="10">
+      <operations id="45" stage="2" latency="5"/>
+    </states>
+    <states id="11">
+      <operations id="45" stage="1" latency="5"/>
+    </states>
+    <states id="12">
+      <operations id="46" stage="5" latency="5"/>
+    </states>
+    <states id="13">
+      <operations id="46" stage="4" latency="5"/>
+    </states>
+    <states id="14">
+      <operations id="46" stage="3" latency="5"/>
+    </states>
+    <states id="15">
+      <operations id="46" stage="2" latency="5"/>
+    </states>
+    <states id="16">
+      <operations id="29" stage="1" latency="1"/>
+      <operations id="30" stage="1" latency="1"/>
+      <operations id="46" stage="1" latency="5"/>
+      <operations id="54" stage="1" latency="1"/>
+    </states>
+    <states id="17">
+      <operations id="37" stage="1" latency="1"/>
+      <operations id="38" stage="1" latency="1"/>
+      <operations id="39" stage="1" latency="1"/>
+      <operations id="47" stage="1" latency="1"/>
+      <operations id="48" stage="1" latency="1"/>
+      <operations id="52" stage="1" latency="1"/>
+    </states>
+    <transitions inState="1" outState="2">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="2" outState="3">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="3" outState="4">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="4" outState="5">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="5" outState="6">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="6" outState="7">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="7" outState="8">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="8" outState="9">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="9" outState="10">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="10" outState="11">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="11" outState="12">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="12" outState="13">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="13" outState="14">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="14" outState="15">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="15" outState="16">
+      <condition id="-1"/>
+    </transitions>
+    <transitions inState="16" outState="17">
+      <condition id="-1"/>
+    </transitions>
+  </fsm>
+  <CFGRegionsRoot>
+    <cfgRegions mId="1" mTag="EntryConv_Pipeline_OL" mII="-1" mDepth="-1" mMinTripCount="-1" mMaxTripCount="-1" mMinLatency="115" mMaxLatency="115">
+      <subRegions>2</subRegions>
+      <subRegions>3</subRegions>
+      <subRegions>4</subRegions>
+      <mDfPipe/>
+    </cfgRegions>
+    <cfgRegions mId="2" mTag="Entry" mII="-1" mDepth="-1" mMinTripCount="-1" mMaxTripCount="-1">
+      <basicBlocks>26</basicBlocks>
+      <mDfPipe/>
+    </cfgRegions>
+    <cfgRegions mId="3" mTag="OL" mII="1" mDepth="17" mMinTripCount="98" mMaxTripCount="98" mMinLatency="113" mMaxLatency="113" mType="1">
+      <basicBlocks>35</basicBlocks>
+      <basicBlocks>53</basicBlocks>
+      <mDfPipe/>
+    </cfgRegions>
+    <cfgRegions mId="4" mTag="Return" mII="-1" mDepth="-1" mMinTripCount="-1" mMaxTripCount="-1">
+      <basicBlocks>55</basicBlocks>
+      <mDfPipe/>
+    </cfgRegions>
+  </CFGRegionsRoot>
+</cdfg:DBCdfg>

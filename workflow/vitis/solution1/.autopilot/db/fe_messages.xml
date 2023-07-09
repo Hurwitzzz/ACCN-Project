@@ -1,0 +1,36 @@
+<xilinx:hls_fe_msgs>
+    <msg msg_groups="PRAGMA_VERBOSE_DUMP" msg_id="207-5471" msg_severity="WARNING" msg_loc="conv.cpp:14:9" msg_body="HLS pragma dump">
+        <args ARG_PragmaFunction="conv1D" ARG_PragmaIsValid="1" ARG_PragmaOptions="II=1" ARG_PragmaType="pipeline" ClangWarningOption="dump-hls-pragmas"/>
+    </msg>
+    <msg msg_groups="PRAGMA_VERBOSE_DUMP" msg_id="207-5471" msg_severity="WARNING" msg_loc="conv.cpp:17:9" msg_body="HLS pragma dump">
+        <args ARG_PragmaFunction="conv1D" ARG_PragmaIsValid="1" ARG_PragmaType="unroll" ClangWarningOption="dump-hls-pragmas"/>
+    </msg>
+    <msg msg_groups="PRAGMA_VERBOSE_DUMP" msg_id="207-5471" msg_severity="WARNING" msg_loc="/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow/vitis_workflow2/solution1/csynth.tcl:16:9" msg_body="HLS pragma dump">
+        <args ARG_PragmaContext="directive" ARG_PragmaFunction="EntryConv" ARG_PragmaIsValid="1" ARG_PragmaOptions="name=EntryConv" ARG_PragmaType="top" ClangWarningOption="dump-hls-pragmas"/>
+    </msg>
+    <msg msg_groups="PRAGMA_VERBOSE_DUMP" msg_id="207-5471" msg_severity="WARNING" msg_loc="conv.cpp:28:9" msg_body="HLS pragma dump">
+        <args ARG_PragmaFunction="EntryConv" ARG_PragmaIsValid="1" ARG_PragmaOptions="m_axi port=X,W" ARG_PragmaType="interface" ClangWarningOption="dump-hls-pragmas"/>
+    </msg>
+    <msg msg_groups="PRAGMA_VERBOSE_DUMP" msg_id="207-5471" msg_severity="WARNING" msg_loc="conv.cpp:29:9" msg_body="HLS pragma dump">
+        <args ARG_PragmaFunction="EntryConv" ARG_PragmaIsValid="1" ARG_PragmaOptions="m_axi port=Z" ARG_PragmaType="interface" ClangWarningOption="dump-hls-pragmas"/>
+    </msg>
+    <msg msg_groups="PRAGMA_VERBOSE_DUMP" msg_id="207-5471" msg_severity="WARNING" msg_loc="conv.cpp:30:9" msg_body="HLS pragma dump">
+        <args ARG_PragmaFunction="EntryConv" ARG_PragmaIsValid="1" ARG_PragmaOptions="s_axilite port=return" ARG_PragmaType="interface" ClangWarningOption="dump-hls-pragmas"/>
+    </msg>
+    <msg msg_groups="PRAGMA_VERBOSE_DUMP" msg_id="207-5471" msg_severity="WARNING" msg_loc="conv.cpp:31:9" msg_body="HLS pragma dump">
+        <args ARG_PragmaFunction="EntryConv" ARG_PragmaIsValid="1" ARG_PragmaOptions="s_axilite port=X,W" ARG_PragmaType="interface" ClangWarningOption="dump-hls-pragmas"/>
+    </msg>
+    <msg msg_groups="PRAGMA_VERBOSE_DUMP" msg_id="207-5471" msg_severity="WARNING" msg_loc="conv.cpp:32:9" msg_body="HLS pragma dump">
+        <args ARG_PragmaFunction="EntryConv" ARG_PragmaIsValid="1" ARG_PragmaOptions="s_axilite port=Z" ARG_PragmaType="interface" ClangWarningOption="dump-hls-pragmas"/>
+    </msg>
+    <msg msg_groups="PRAGMA_UNROLL" msg_id="214-291" msg_severity="INFO" msg_loc="conv.cpp:16:5" msg_body="Loop 'IL' is marked as complete unroll implied by the pipeline pragma">
+        <args LoopName="IL"/>
+    </msg>
+    <msg msg_groups="PRAGMA_UNROLL" msg_id="214-186" msg_severity="INFO" msg_loc="conv.cpp:5:0" msg_body="Unrolling loop 'IL' (conv.cpp:16:5) in function 'conv1D' completely with a factor of 3">
+        <args Factor="3" LoopLoc="conv.cpp:16:5" LoopName="IL"/>
+    </msg>
+    <msg msg_groups="PRAGMA_INLINE" msg_id="214-178" msg_severity="INFO" msg_loc="conv.cpp:27:0" msg_body="Inlining function 'conv1D(float const*, float const*, float*)' into 'EntryConv(float const*, float const*, float*)'">
+        <args Callee="conv1D(float const*, float const*, float*)" Callee-DebugLoc="File conv.cpp Line 5 Column 0" Caller="EntryConv(float const*, float const*, float*)" Caller-DebugLoc="File conv.cpp Line 27 Column 0"/>
+    </msg>
+</xilinx:hls_fe_msgs>
+

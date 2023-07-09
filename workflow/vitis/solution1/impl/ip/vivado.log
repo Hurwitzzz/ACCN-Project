@@ -1,0 +1,26 @@
+#-----------------------------------------------------------
+# Vivado v2023.1 (64-bit)
+# SW Build 3865809 on Sun May  7 15:04:56 MDT 2023
+# IP Build 3864474 on Sun May  7 20:36:21 MDT 2023
+# SharedData Build 3865790 on Sun May 07 13:33:03 MDT 2023
+# Start of session at: Sun Jul  9 00:33:32 2023
+# Process ID: 22383
+# Current directory: /home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow/vitis/solution1/impl/ip
+# Command line: vivado -notrace -mode batch -source run_ippack.tcl
+# Log file: /home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow/vitis/solution1/impl/ip/vivado.log
+# Journal file: /home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow/vitis/solution1/impl/ip/vivado.jou
+# Running On: gandalfvoid, OS: Linux, CPU Frequency: 1517.972 MHz, CPU Physical cores: 16, Host memory: 16108 MB
+#-----------------------------------------------------------
+source run_ippack.tcl -notrace
+create_project: Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 1330.090 ; gain = 0.023 ; free physical = 2032 ; free virtual = 7243
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository '/home/clyybber/builds/vivado/Vivado/2023.1/data/ip'.
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'EntryConv_fadd_32ns_32ns_32_5_full_dsp_1_ip'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'EntryConv_fadd_32ns_32ns_32_5_full_dsp_1_ip'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'EntryConv_fmul_32ns_32ns_32_4_max_dsp_1_ip'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'EntryConv_fmul_32ns_32ns_32_4_max_dsp_1_ip'...
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository '/home/clyybber/builds/vivado/Vivado/2023.1/data/ip'.
+INFO: [Common 17-206] Exiting Vivado at Sun Jul  9 00:33:45 2023...

@@ -1,0 +1,13 @@
+---
+MainSourceFile:  /home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow/vitis_workflow2/solution1/.autopilot/db/conv.pp.0.cpp
+Diagnostics:     
+  - DiagnosticName:  xilinx-label-all-loops
+    Message:         'Added loop label VITIS_LOOP_8_1:  '
+    FileOffset:      8
+    FilePath:        conv.cpp
+    Replacements:    
+      - FilePath:        /home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/workflow/vitis_workflow2/solution1/.autopilot/db/conv.pp.0.cpp
+        Offset:          9918
+        Length:          0
+        ReplacementText: 'VITIS_LOOP_8_1: '
+...
