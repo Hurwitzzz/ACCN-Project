@@ -11,46 +11,60 @@
 
 
 /* x_w, x_h, etc. are the actual size */
-void Conv2D_3x3(float x_sm[X_CHANNEL*X_SIZE*X_SIZE], float w_sm[W_CHANNEL*W_SIZE*W_SIZE], 
-float b_sm[B_CHANNEL], int x_w, int x_h, int x_c, int z_c, float z_out[Z_CHANNEL*Z_SIZE*Z_SIZE])
+void Conv2D_3x3(float x_sm[X_CHANNEL][X_SIZE][X_SIZE], 
+float w_sm[W_CHANNEL][KERNEL_SIZE][KERNEL_SIZE][KERNEL_SIZE], 
+float b_sm[B_CHANNEL], 
+int x_w, int x_h, int x_c, int z_c, 
+float z_out[Z_CHANNEL][Z_SIZE][Z_SIZE])
 {
 
     // Initialize output tensor to zero
-    for(int i = 0; i < z_c * Z_SIZE * Z_SIZE; i++){
-        z_out[i] = 0;
+    for(int i = 0; i < z_c; i++){
+        for(int j = 0; j < Z_SIZE; j++){
+            for(int k = 0; k < Z_SIZE; k++){
+                z_out[i][j][k] = 0;
+            }
+        }
     }
 
     /* access data in DRAM to BRAM*/
-    float x[KERNEL_SIZE*KERNEL_SIZE];
-    float w[KERNEL_SIZE*KERNEL_SIZE];
-    for (int row = 0; row < KERNEL_SIZE; row++)
-    {
-        for (int column = 0; column < KERNEL_SIZE; column++)
-        {
-            
-        }
-    }
+    float x[KERNEL_SIZE][KERNEL_SIZE];
+    float w[KERNEL_SIZE][KERNEL_SIZE];
 
     // Perform convolution
     for(int i = 0; i < z_c; i++) {
         for(int j = 0; j < Z_SIZE; j++) {
             for(int k = 0; k < Z_SIZE; k++) {
+                // create buffer for each kernel_size conv
+                float acc_kernel[KERNEL_SIZE * KERNEL_SIZE];
                 for(int c = 0; c < x_c; c++) {
+
+                    // load x for each kernel, and load w
                     for(int p = 0; p < KERNEL_SIZE; p++) {
                         for(int q = 0; q < KERNEL_SIZE; q++) {
-
-                            // load w for each kernel
-                            get_w(w, p, q) = get_W(w_sm, i, c, p, q);
-
-                            z_out[(i * Z_SIZE + j) * Z_SIZE + k] += x_sm[(c * x_h + (j + p)) * x_w + (k + q)] * w_sm[(i * x_c + c) * KERNEL_SIZE * KERNEL_SIZE + p * KERNEL_SIZE + q];
+                            w[p][q] = w_sm[i][c][p][q];
+                            if (q > 0 && k ==0){
+                                x[p][q] = x_sm[c][j + p][q - 1];
+                            }
                         }
                     }
+
+                    for (int p = 0; p < KERNEL_SIZE; p++) {
+                        for (int q = 0; q < KERNEL_SIZE; q++) {
+                            // reuse the data in BRAM
+                            x[p][q] = (q == KERNEL_SIZE - 1) ? x_sm[c][j + p][k + q] : x[p][q + 1];
+                            acc_kernel[p * KERNEL_SIZE + q] = x[p][q] * w[p][q];
+                        }
+                    }
+
+                    
                 }
-                z_out[(i * Z_SIZE + j) * Z_SIZE + k] += b_sm[i];
+                z_out[i][j][k] += b_sm[i];
             }
         }
     }
 }
+
 
 
 
