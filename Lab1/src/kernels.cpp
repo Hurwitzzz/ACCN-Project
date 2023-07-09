@@ -68,57 +68,6 @@ void conv2d(Tensor * X, Tensor * W ,  Tensor * b, Tensor * Z)
 }
 
 
-// void conv2d(Tensor * X, Tensor * W, Tensor * b, Tensor * Z)
-// {
-//     uint32_t z_width = Z->size[2];
-//     uint32_t z_height = Z->size[1];
-//     uint32_t z_channel = Z->size[0];
-//     uint32_t x_width = X->size[2];
-//     uint32_t x_height = X->size[1];
-//     uint32_t x_channel = X->size[0];
-
-//     uint32_t w_width = W->size[2];
-//     uint32_t w_height = W->size[1];
-//     uint32_t w_channel = W->size[0];
-
-//     // Check if the input and filter dimensions are compatible
-//     if (x_channel != w_channel)
-//     {
-//         printf("Error: Input and filter dimensions are not compatible.\n");
-//         return;
-//     }
-
-//     // Check if the output dimensions are compatible
-//     if (z_channel != w_width || z_height != x_height - w_height + 1 || z_width != x_width - w_width + 1)
-//     {
-//         printf("Error: Output dimensions are not compatible.\n");
-//         return;
-//     }
-
-//     // Perform convolution
-//     for (uint32_t i = 0; i < z_channel; i++)
-//     {
-//         for (uint32_t j = 0; j < z_height; j++)
-//         {
-//             for (uint32_t k = 0; k < z_width; k++)
-//             {
-//                 float sum = 0.0f;
-//                 for (uint32_t c = 0; c < x_channel; c++)
-//                 {
-//                     for (uint32_t p = 0; p < w_height; p++)
-//                     {
-//                         for (uint32_t q = 0; q < w_width; q++)
-//                         {
-//                             sum += X->data[c][j + p][k + q] * W->data[i][p][q];
-//                         }
-//                     }
-//                 }
-//                 Z->data[i][j][k] = sum + b->data[0][0][i];
-//             }
-//         }
-//     }
-// }
-
 /*
  * Applies a max pool layer on X (size = stride = 2)
  * Tensor * X:	input Tensor

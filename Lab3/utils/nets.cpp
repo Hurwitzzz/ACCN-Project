@@ -94,6 +94,7 @@ std::vector<CNN_layer_struct> testNet= {
 };
 
 std::vector<CNN_layer_struct> smallNet= {
+	//(uint32_t input_channels, uint32_t output_channels, uint32_t output_height, uint32_t output_width, uint32_t kernel_width, uint32_t pad)
 	ConvLayer(3,128,128,128,7,3),
 	ReLULayer(),
 	PoolLayer(128,64,64),
