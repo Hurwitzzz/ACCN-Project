@@ -35,7 +35,6 @@ void convBasic(Tensor * X, Tensor * W ,  Tensor * b, Tensor * Z)
     		}
     	}
 	}
-
 }
 
 Tensor * readConv(Tensor * X, Tensor * Ref, Tensor * B , FILE * f)
@@ -74,6 +73,7 @@ void testConv(const char * infile)
 				W->size[1],W->size[2],R.size[0]);
 
 		convBasic(&X,W,&B,&Z);
+		//TODO: EntryConv(X.data, W.data, b.data, X.size[1], X.size[2], X.size[0], Z.size[0], Z.data);
 		compareTensors(&Z,&R,1,1e-3);
 		delete [] W;
 	}
