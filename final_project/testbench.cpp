@@ -167,8 +167,8 @@ int compareTensorsRaw(float* a, uint32_t a_size[3], float* ref, uint32_t ref_siz
 	for(int z = 0; z < a_size[0]; z++){
 	for(int y = 0; y < a_size[1]; y++){
 	for(int x = 0; x < a_size[2]; x++){
-    	int index = z*(a_size[2]*a_size[3]) + y*(a_size[3]) + x;
-		float diff = Fabs( a[index] -  ref[index] );
+		int index = z*(a_size[1]*a_size[2]) + y*(a_size[2]) + x;
+		float diff = Fabs( a[index] - ref[index] );
 		if((diff > limit) && (ret == 0)){
 			printf("Tensors differ at: [%d][%d][%d] by %f \n",
 					z,y,x,diff);
