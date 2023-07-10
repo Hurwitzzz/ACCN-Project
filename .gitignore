@@ -3,4 +3,7 @@
 /Lab3/data/*
 /Lab3/build/*
 /Lab3/*.zip
-
+/final_project/data/*
+/final_project/gentest.py
+/final_project/test_utils.py
+/final_project/__pycache__/*

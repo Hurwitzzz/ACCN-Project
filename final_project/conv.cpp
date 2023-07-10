@@ -24,8 +24,8 @@ void Conv2D_3x3(float in_sm[IN_CHANNEL*IN_SIZE*IN_SIZE],
 
     // Perform convolution
 L1:    for(int i = 0; i < out_c; i++) {
-L2:        for(int j = 0; j < out_w; j++) {
-L3:             for(int k = 0; k < out_h; k++) {
+L2:        for(int j = 0; j < out_h; j++) {
+L3:             for(int k = 0; k < out_w; k++) {
 
                     float acc_channel[IN_CHANNEL];      // create buffer for each channel  
                     float acc_kernel[KERNEL_SIZE * KERNEL_SIZE]; // create buffer for each kernel_size conv        
@@ -56,19 +56,19 @@ L4:                 for(int c = 0; c < in_c; c++) {
                         } 
                     }
                     // sum up the result of one channel
-                    get_z(z,j,k,in_w) = 0;
+                    get_z(z,j,k,out_w) = 0;
                     for(int c = 0; c < in_c; c++) {
-                        get_z(z,j,k,in_w) += acc_channel[c]; // z[j][k] += acc_channel[c];
+                        get_z(z,j,k,out_w) += acc_channel[c]; // z[j][k] += acc_channel[c];
                     }
                     // add bias
-                    get_z(z,j,k,in_w) += b_sm[i]; // z[j][k] += b_sm[i];                      
+                    get_z(z,j,k,out_w) += b_sm[i]; // z[j][k] += b_sm[i];                      
                 } 
                     
             }
             // send the result to out_sm (in DRAM)
             for(int j = 0; j < out_w; j++) {
                 for(int k = 0; k < out_h; k++) {
-                    get_OUT(out_sm,i,j,k,out_w) = get_z(z,j,k,in_w); // out_sm[i][j][k] = z[j][k];
+                    get_OUT(out_sm,i,j,k,out_w) = get_z(z,j,k,out_w); // out_sm[i][j][k] = z[j][k];
                 }
             }
         }
@@ -159,7 +159,7 @@ float& get_W(float tensor[OUT_CHANNEL * IN_CHANNEL * KERNEL_SIZE * KERNEL_SIZE],
         return tensor[(z_ch * in_c + ch) * KERNEL_SIZE * KERNEL_SIZE + (row * KERNEL_SIZE + column)];
     }
 }
-float& get_z(float tensor[OUT_SIZE * OUT_SIZE], int row, int column, int in_w)
+float& get_z(float tensor[OUT_SIZE * OUT_SIZE], int row, int column, int out_w)
 {
     if (row < 0 || row >= OUT_SIZE || column < 0 || column >= OUT_SIZE)
     {
@@ -168,7 +168,7 @@ float& get_z(float tensor[OUT_SIZE * OUT_SIZE], int row, int column, int in_w)
     }
     else
     {
-        return tensor[row * in_w + column];
+        return tensor[row * out_w + column];
     }
 }
 

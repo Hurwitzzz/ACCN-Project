@@ -379,7 +379,8 @@ void testConv(const char * infile)
 }
 
 int main(){
-	testConv("/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/final_project/data/conv_test.dat");
+	// testConv("/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/final_project/data/conv_test.dat");
+	testConv("/home/hewei/TUM/ACCN/ACCN-Homework/final_project/data/conv_test.dat");
 	/*
 	for(int i = 0; i < ntests; i++){
 		EntryConv(x + (i*INPUT_SIZE),w + (i*KERNEL_SIZE), z + (i*OUTPUT_SIZE));
