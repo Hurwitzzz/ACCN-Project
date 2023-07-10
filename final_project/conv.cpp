@@ -53,7 +53,7 @@ L4:                 for(int c = 0; c < in_c; c++) {
                         acc_channel[c] = 0;
                         for(int p = 0; p < KERNEL_SIZE * KERNEL_SIZE; p++) {
                             acc_channel[c] += acc_kernel[p];
-                        } 
+                        }
                     }
                     // sum up the result of one channel
                     get_z(z,j,k,out_w) = 0;
@@ -112,12 +112,12 @@ void EntryConv(float in_sm[IN_CHANNEL*IN_SIZE*IN_SIZE],
 
 float& get_in(float tensor[KERNEL_SIZE*KERNEL_SIZE],int row, int column)
 {
-    if (row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
-    {
-        printf("Error: get_x out of bound\n");
-        exit(EXIT_FAILURE);
-    }
-    else
+    // if (row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
+    // {
+    //     printf("Error: get_x out of bound\n");
+    //     exit(EXIT_FAILURE);
+    // }
+    // else
     {
         return tensor[row * KERNEL_SIZE + column];
     }
@@ -125,12 +125,12 @@ float& get_in(float tensor[KERNEL_SIZE*KERNEL_SIZE],int row, int column)
 float& get_IN(float tensor[IN_CHANNEL*IN_SIZE*IN_SIZE], int ch, int row, int column, int in_w)
 {
 
-    if (ch < 0 || ch >= IN_CHANNEL || row < 0 || row >= IN_SIZE || column < 0 || column >= IN_SIZE)
-    {
-        printf("Error: get_X out of bound\n");
-        exit(EXIT_FAILURE);
-    }
-    else
+    // if (ch < 0 || ch >= IN_CHANNEL || row < 0 || row >= IN_SIZE || column < 0 || column >= IN_SIZE)
+    // {
+    //     printf("Error: get_X out of bound\n");
+    //     exit(EXIT_FAILURE);
+    // }
+    // else
     {
         return tensor[(ch * in_w + row) * in_w + column];
     }
@@ -138,36 +138,36 @@ float& get_IN(float tensor[IN_CHANNEL*IN_SIZE*IN_SIZE], int ch, int row, int col
 
 float& get_w(float tensor[KERNEL_SIZE*KERNEL_SIZE], int row, int column)
 {
-    if (row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
-    {
-        printf("Error: get_w out of bound\n");
-        exit(EXIT_FAILURE);
-    }
-    else
+    // if (row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
+    // {
+    //     printf("Error: get_w out of bound\n");
+    //     exit(EXIT_FAILURE);
+    // }
+    // else
     {
         return tensor[row * KERNEL_SIZE + column];
     }
 }
 float& get_W(float tensor[OUT_CHANNEL * IN_CHANNEL * KERNEL_SIZE * KERNEL_SIZE], int z_ch, int ch, int row, int column, int in_c)
 {
-    if (z_ch < 0 || z_ch >= OUT_CHANNEL || ch < 0 || ch >= IN_CHANNEL || row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
-    {
-        printf("Error: get_W out of bound\n");
-        exit(EXIT_FAILURE);
-    }
-    else
+    // if (z_ch < 0 || z_ch >= OUT_CHANNEL || ch < 0 || ch >= IN_CHANNEL || row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
+    // {
+    //     printf("Error: get_W out of bound\n");
+    //     exit(EXIT_FAILURE);
+    // }
+    // else
     {
         return tensor[(z_ch * in_c + ch) * KERNEL_SIZE * KERNEL_SIZE + (row * KERNEL_SIZE + column)];
     }
 }
 float& get_z(float tensor[OUT_SIZE * OUT_SIZE], int row, int column, int in_w)
 {
-    if (row < 0 || row >= OUT_SIZE || column < 0 || column >= OUT_SIZE)
-    {
-        printf("Error: get_z out of bound\n");
-        exit(EXIT_FAILURE);
-    }
-    else
+    // if (row < 0 || row >= OUT_SIZE || column < 0 || column >= OUT_SIZE)
+    // {
+    //     printf("Error: get_z out of bound\n");
+    //     exit(EXIT_FAILURE);
+    // }
+    // else
     {
         return tensor[row * in_w + column];
     }
@@ -175,12 +175,12 @@ float& get_z(float tensor[OUT_SIZE * OUT_SIZE], int row, int column, int in_w)
 
 float& get_OUT(float tensor[OUT_CHANNEL*OUT_SIZE*OUT_SIZE], int ch, int row, int column, int out_w)
 {
-    if (ch < 0 || ch >= OUT_CHANNEL || row < 0 || row >= OUT_SIZE || column < 0 || column >= OUT_SIZE)
-    {
-        printf("Error: get_OUT out of bound\n");
-        exit(EXIT_FAILURE);
-    }
-    else
+    // if (ch < 0 || ch >= OUT_CHANNEL || row < 0 || row >= OUT_SIZE || column < 0 || column >= OUT_SIZE)
+    // {
+    //     printf("Error: get_OUT out of bound\n");
+    //     exit(EXIT_FAILURE);
+    // }
+    // else
     {
         return tensor[(ch * out_w + row) * out_w + column];
     }
