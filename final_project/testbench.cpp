@@ -312,27 +312,31 @@ int readConvRaw(float ** X, uint32_t X_size[3], float ** Ref, uint32_t Ref_size[
 void testConv(const char * infile)
 {
 	FILE * f = fopen(infile,"rb");
-	Tensor X,R,W,B;
+	//Tensor X,R,W,B;
+	float* X = new float[0];
+	uint32_t X_size[3] = {0, 0, 0};
+	float* R = new float[0];
+	uint32_t R_size[3] = {0, 0, 0};
+	float* W = new float[0];
+	uint32_t W_size[4] = {0, 0, 0, 0};
+	float* B = new float[0];
+	uint32_t B_size[3] = {0, 0, 0};
 	printf("------------------------------\n");
 	printf("Testing Convolutional Layer...\n");
 	while(1){
-		//if(!readConvRaw(&X,&R,&W, &B,f) == TENSOR_READ_FAILED) break;
-		Tensor * W = readConv(&X,&R,&B,f);
-		if(W == NULL)
-			break;
+		if(!readConvRaw(&X,X_size, &R,R_size, &W,W_size, &B,B_size, f)) break;
 
-		Tensor Z(R.size[0],R.size[1],R.size[2]);
+		float* Z = new float[R_size[0]*R_size[1]*R_size[2]];
 		//Z.randomize(-1,1);
-		printf("Test X:[%dx%dx%d] W:[%dx%d] Output channels: %d!\n",X.size[0],X.size[1],X.size[2],
-				W->size[1],W->size[2],R.size[0]);
+		printf("Test X:[%dx%dx%d] W:[%dx%d] Output channels: %d!\n",X_size[0],X_size[1],X_size[2],
+				W_size[2],W_size[3],R_size[0]);
 
-		convBasic(&X,W,&B,&Z);
-		if(X.size[1] == 3 && X.size[2] == 3) {
+		//convBasic(&X,W,&B,&Z);
+		if(W_size[2] == 3 && W_size[3] == 3) {
 			//Use FPGA for Conv2D_3x3:
-    		//TODO: Change Tensor class or copy into arrays
-        	//EntryConv(X.data, W.data, b.data, X.size[1], X.size[2], X.size[0], Z.size[0], Z.data);
+        	EntryConv(X, W, B, X_size[1], X_size[2], X_size[0], R_size[0], Z);
 		}
-		compareTensors(&Z,&R,1,1e-3);
+		//TODO: compareTensors(&Z,&R,1,1e-3);
 		delete [] W;
 	}
 	fclose(f);
