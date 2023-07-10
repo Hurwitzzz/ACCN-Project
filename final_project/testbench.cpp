@@ -204,9 +204,8 @@ int readConvRaw(float ** X, uint32_t X_size[3], float ** Ref, uint32_t Ref_size[
 	return 1;
 }
 
-void testConv(const char * infile)
+void testConv(FILE * f)
 {
-	FILE * f = fopen(infile,"rb");
 	//Tensor X,R,W,B;
 	float* X = new float[0];
 	uint32_t X_size[3] = {0, 0, 0};
@@ -250,8 +249,16 @@ void testConv(const char * infile)
 }
 
 int main(){
-	// testConv("/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/final_project/data/conv_test.dat");
-	testConv("/home/hewei/TUM/ACCN/ACCN-Homework/final_project/data/conv_test.dat");
+	FILE * f = fopen("data/conf_test.dat", "rb");
+	// Try to use absolute path for Vitis HLS
+	if(!f) f = fopen("/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/final_project/data/conv_test.dat","rb");
+	if(!f) f = fopen("/home/hewei/TUM/ACCN/ACCN-Homework/final_project/data/conv_test.dat", "rb");
+	if(f) {
+		testConv(f);
+	} else {
+		printf("test.dat not found\n");
+	}
+
 	/*
 	for(int i = 0; i < ntests; i++){
 		EntryConv(x + (i*INPUT_SIZE),w + (i*KERNEL_SIZE), z + (i*OUTPUT_SIZE));
