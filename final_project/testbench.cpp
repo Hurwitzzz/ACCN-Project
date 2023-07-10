@@ -366,8 +366,11 @@ void testConv(const char * infile)
         	EntryConv(X,     W,     B,    X_size[1], X_size[2], X_size[0], R_size[0], Z     );
 		}
 		compareTensorsRaw(Z,R_size,R,R_size,1e-3);
-		delete [] W;
 	}
+	delete [] X;
+	delete [] R;
+	delete [] W;
+	delete [] B;
 	fclose(f);
 }
 
