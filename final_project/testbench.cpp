@@ -162,7 +162,6 @@ int compareTensorsRaw(float* a, uint32_t a_size[3], float* ref, uint32_t ref_siz
 			|| (a_size[2] != ref_size[2])){
 		throw std::runtime_error("Tensor dimensions don't match ! \n");
 	}
-	int i,j,k;
 	int ret = 0;
 	double abs_diff = 0;
 	for(int z = 0; z < a_size[0]; z++){
@@ -172,7 +171,7 @@ int compareTensorsRaw(float* a, uint32_t a_size[3], float* ref, uint32_t ref_siz
 		float diff = Fabs( a[index] -  ref[index] );
 		if((diff > limit) && (ret == 0)){
 			printf("Tensors differ at: [%d][%d][%d] by %f \n",
-					i,j,k,diff);
+					z,y,x,diff);
 			ret = 1;
 		}
 		abs_diff += diff;
