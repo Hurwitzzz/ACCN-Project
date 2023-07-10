@@ -362,7 +362,8 @@ void testConv(const char * infile)
 		//convBasic(&X,W,&B,&Z);
 		if(W_size[2] == 3 && W_size[3] == 3) {
 			//Use FPGA for Conv2D_3x3:
-        	EntryConv(X, W, B, X_size[1], X_size[2], X_size[0], R_size[0], Z);
+    		//        in_sm, w_sm,	b_sm, in_w,      in_h,      in_c,      out_c,     out_sm
+        	EntryConv(X,     W,     B,    X_size[1], X_size[2], X_size[0], R_size[0], Z     );
 		}
 		compareTensorsRaw(Z,R_size,R,R_size,1e-3);
 		delete [] W;

@@ -24,8 +24,8 @@ void Conv2D_3x3(float in_sm[IN_CHANNEL*IN_SIZE*IN_SIZE],
 
     // Perform convolution
 L1:    for(int i = 0; i < out_c; i++) {
-L2:        for(int j = 0; j < OUT_SIZE; j++) {
-L3:             for(int k = 0; k < OUT_SIZE; k++) {
+L2:        for(int j = 0; j < out_w; j++) {
+L3:             for(int k = 0; k < out_h; k++) {
 
                     float acc_channel[IN_CHANNEL];      // create buffer for each channel  
                     float acc_kernel[KERNEL_SIZE * KERNEL_SIZE]; // create buffer for each kernel_size conv        
@@ -66,8 +66,8 @@ L4:                 for(int c = 0; c < in_c; c++) {
                     
             }
             // send the result to out_sm (in DRAM)
-            for(int j = 0; j < OUT_SIZE; j++) {
-                for(int k = 0; k < OUT_SIZE; k++) {
+            for(int j = 0; j < out_w; j++) {
+                for(int k = 0; k < out_h; k++) {
                     get_OUT(out_sm,i,j,k,out_w) = get_z(z,j,k,in_w); // out_sm[i][j][k] = z[j][k];
                 }
             }
