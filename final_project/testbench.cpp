@@ -297,10 +297,10 @@ int readTensorSize(FILE * f, uint32_t size[3])
 }
 
 //Returns 0 on failure
-int readTensorRaw(FILE * f, float ** out, uint32_t size[3])
+int readTensorRaw(FILE * f, float * out, uint32_t size[3])
 {
 	uint32_t num_params = size[0] * size[1] * size[2];
-	if(num_params != fread(&(*out[0]),sizeof(float),num_params,f))
+	if(num_params != fread(out,sizeof(float),num_params,f))
 		return 0;
 	return 1;
 }
@@ -311,27 +311,27 @@ int readConvRaw(float ** X, uint32_t X_size[3], float ** Ref, uint32_t Ref_size[
     uint32_t new_X_size[3];
     if(!readTensorSize(f, new_X_size)) return 0;
     reallocIfNecessary(X, X_size, new_X_size, 3); 
-    if(!readTensorRaw(f, X, X_size)) return 0;
+    if(!readTensorRaw(f, *X, X_size)) return 0;
 
     uint32_t new_Ref_size[3];
     if(!readTensorSize(f, new_Ref_size)) return 0;
     reallocIfNecessary(Ref, Ref_size, new_Ref_size, 3); 
-	if(!readTensorRaw(f, Ref, Ref_size)) return 0;
+	if(!readTensorRaw(f, *Ref, Ref_size)) return 0;
 
-    uint32_t new_W_size[3] = {Ref_size[0]};
+    uint32_t new_W_size[4] = {Ref_size[0]};
     if(!readTensorSize(f, &new_W_size[1])) return 0;
     reallocIfNecessary(W, W_size, new_W_size, 4);
 	for(int i = 0; i < Ref_size[0] ; i++){
     	if(i != 0) {
         	if(!readTensorSize(f, &new_W_size[1])) return 0;
     	}
-		if(!readTensorRaw(f, &W[i*W_size[1]*W_size[2]*W_size[3]], &W_size[1])) return 0;
+		if(!readTensorRaw(f, &(*W)[i*W_size[1]*W_size[2]*W_size[3]], &W_size[1])) return 0;
 	}
 
     uint32_t new_B_size[3];
     if(!readTensorSize(f, new_B_size)) return 0;
     reallocIfNecessary(B, B_size, new_B_size, 3); 
-    if(!readTensorRaw(f, B, B_size)) return 0;
+    if(!readTensorRaw(f, *B, B_size)) return 0;
 
 	return 1;
 }
@@ -360,11 +360,16 @@ void testConv(const char * infile)
 
 		//convBasic(&X,W,&B,&Z);
 		if(W_size[2] == 3 && W_size[3] == 3) {
+			if(X_size[0] > IN_CHANNEL) printf("Too many input channels\n");
+			if(X_size[1] > IN_SIZE || X_size[2] > IN_SIZE) printf("Input too big\n");
+			if(R_size[0] > OUT_CHANNEL) printf("Too many output channels\n");
 			//Use FPGA for Conv2D_3x3:
     		//        in_sm, w_sm,	b_sm, in_w,      in_h,      in_c,      out_c,     out_sm
         	EntryConv(X,     W,     B,    X_size[1], X_size[2], X_size[0], R_size[0], Z     );
+    		compareTensorsRaw(Z,R_size,R,R_size,1e-3);
+		} else {
+    		printf("Skipped because not 3x3 kernel\n");
 		}
-		compareTensorsRaw(Z,R_size,R,R_size,1e-3);
 	}
 	delete [] X;
 	delete [] R;
