@@ -7,153 +7,37 @@
 #include <stdio.h>
 #include <stdexcept>
 
-#define TENSOR_READ_SUCCSEFULL	0
-#define TENSOR_READ_RESIZED		1
-#define TENSOR_READ_FAILED 		2
+// void Tensor::write(FILE *f)
+// {
+// 	uint64_t num_params = size[0]*size[1]*size[2];
+// 	fwrite(&(size[0]),sizeof(size[0]),1,f);
+// 	fwrite(&(size[1]),sizeof(size[1]),1,f);
+// 	fwrite(&(size[2]),sizeof(size[2]),1,f);
+// 	fwrite(data[0][0],sizeof(data[0][0][0]),num_params,f);
+// }
 
-class Tensor{
-	private:
-		int allocated;
-
-	public:
-		float *** data;
-		void allocate(uint32_t dim_z, uint32_t dim_y, uint32_t dim_x);
-		uint32_t size[3];
-		// Constructor and Destructor
-		Tensor(uint32_t dim_z, uint32_t dim_y, uint32_t dim_x);
-		// Creates an empty un- allocated Tensor
-		Tensor();
-		// Destructor
-		~Tensor();
-		// Read and write Tensor to file
-		int read(FILE * f);
-		void write(FILE * f);
-		void resize(uint32_t dim_z, uint32_t dim_y, uint32_t dim_x);
-		// Easy access to the data
-		float ** operator[](uint32_t i){
-			return data[i];
-		}
-};
-
-void Tensor::resize(uint32_t dim_z, uint32_t dim_y, uint32_t dim_x)
-{
-	if(data != NULL){
-		delete [] data[0][0];
-		delete [] data[0];
-		delete [] data;
-	}
-	allocate(dim_z,dim_y,dim_x);
-}
-
-void Tensor::allocate(uint32_t dim_z, uint32_t dim_y, uint32_t dim_x)
-{
-	allocated = 1;
-	data = new float ** [dim_z];
-	float ** tmp_y = new float * [(uint64_t) dim_y *
-		(uint64_t) dim_z];
-	float * tmp_x = new float[(uint64_t) dim_z * 
-		(uint64_t) dim_y * (uint64_t) dim_x]();
-	for(int i = 0; i < dim_y*dim_z ; i++){
-		tmp_y[i] = &(tmp_x[i * dim_x]);
-	}
-	for(int i = 0; i < dim_z ; i++){
-		data[i] = &(tmp_y[i * dim_y]);
-	}
-	size[0] = dim_z;
-	size[1] = dim_y;
-	size[2] = dim_x;
-}
-
-Tensor::Tensor(uint32_t dim_z, uint32_t dim_y, uint32_t dim_x)
-{
-	allocate(dim_z,dim_y,dim_x);
-}
-
-Tensor::Tensor()
-{
-	allocated = 0;
-	data = NULL;
-	size[0] = 0;
-	size[1] = 0;
-	size[2] = 0;
-}
-
-
-
-
-Tensor::~Tensor()
-{
-	if(data != NULL){
-		if(data[0] != NULL){
-			if((data[0][0] != NULL) && (allocated))
-				delete [] data[0][0];
-			delete [] data[0];
-		}
-		delete [] data;
-	}
-}
-
-
-void Tensor::write(FILE *f)
-{
-	uint64_t num_params = size[0]*size[1]*size[2];
-	fwrite(&(size[0]),sizeof(size[0]),1,f);
-	fwrite(&(size[1]),sizeof(size[1]),1,f);
-	fwrite(&(size[2]),sizeof(size[2]),1,f);
-	fwrite(data[0][0],sizeof(data[0][0][0]),num_params,f);
-}
-
+// Tensor * padTensor(Tensor * X , uint32_t pad)
+// {
+// 	int N = X->size[1] +  pad *2;
+// 	int K = X->size[2] +  pad *2;
+// 	Tensor * Xpad = new Tensor(X->size[0], N,K);
+// 	for(int z = 0; z < X->size[0]; z++){
+// 		float ** xpad = (*Xpad)[z];
+// 		float ** x = (*X)[z];
+// 		for(int i = 0; i < N ;i++){
+// 			for(int j = 0; j < K; j++){
+// 				if((i >= pad) && (i < (N-pad)) &&
+// 							(j >=  pad) && (j <  (K- pad)))
+// 					xpad[i][j] = x[i-pad][j-pad];
+// 			}
+// 		}
+// 	}
+// 	return Xpad;
+// }
 
 static float Fabs(float a)
 {
 	return (a > 0) ? a : -a;
-}
-
-
-// Compare two Tensor arrays of length N 
-int compareTensors(Tensor * y, Tensor * ref, int N, float limit){
-	int n,i,j,k;
-	int ret = 0;
-	double abs_diff = 0;
-	for(n = 0; n < N; n++){
-		for(i = 0; i < y[n].size[0]; i++){
-			if(y[n].size[0] != ref[n].size[0] || (y[n].size[1] != ref[n].size[1]) 
-					|| (y[n].size[2] != ref[n].size[2])){
-				throw std::runtime_error("Tensor dimensions don't match ! \n");
-			}
-			float ** my = y[n][i];
-			float ** mr = ref[n][i];
-			// printf("my values\n");
-			for(int j =0; j < y[n].size[1]; j++){
-				for(int k =0; k < y[n].size[2];k++){
-					float diff = Fabs( my[j][k] -  mr[j][k]);
-					if((diff > limit) && (ret == 0)){
-						printf("Tensors differ at: [%d][%d][%d] by %f \n",
-								i,j,k,diff);
-						ret = 1;
-					}
-					abs_diff += diff;
-					// // print out my and mr values
-					// printf("%f",my[j][k]);
-				}
-				// printf("\n");
-			}
-			// // print out ref values
-			// printf("ref values\n");
-			// for (int j = 0; j < ref[n].size[1]; j++){
-			// 	for(int k = 0; k < ref[n].size[2]; k++){
-			// 		printf("%f",mr[j][k]);
-			// 	}
-			// 	printf("\n");
-			// }
-
-		}
-	}
-	printf("Total avg diff: %lf\n",abs_diff/(1.f * y->size[0] * y->size[1] * y->size[2]));
-	if(ret == 0){
-		printf("Tensors are equal!\n");
-	}
-	return  ret;
 }
 
 // Compare two Tensor arrays of length N 
@@ -183,95 +67,37 @@ int compareTensorsRaw(float* a, uint32_t a_size[3], float* ref, uint32_t ref_siz
 	return  ret;
 }
 
-Tensor * padTensor(Tensor * X , uint32_t pad)
+void convBasic(float* X, uint32_t X_size[3],
+               float* W, uint32_t W_size[4],
+               float* B, uint32_t B_size[3],
+               float* Z, uint32_t Z_size[3])
 {
-	int N = X->size[1] +  pad *2;
-	int K = X->size[2] +  pad *2;
-	Tensor * Xpad = new Tensor(X->size[0], N,K);
-	for(int z = 0; z < X->size[0]; z++){
-		float ** xpad = (*Xpad)[z];
-		float ** x = (*X)[z];
-		for(int i = 0; i < N ;i++){
-			for(int j = 0; j < K; j++){
-				if((i >= pad) && (i < (N-pad)) &&
-							(j >=  pad) && (j <  (K- pad)))
-					xpad[i][j] = x[i-pad][j-pad];
-			}
-		}
-	}
-	return Xpad;
-}
-
-void convBasic(Tensor * X, Tensor * W ,  Tensor * b, Tensor * Z)
-{
-	// printf("%d %d %d\n", X->size[0], X->size[1], X->size[2]);
-	// printf("%d %d %d\n", W->size[0], W->size[1], W->size[2]);
-	// printf("%d %d %d\n", b->size[0], b->size[1], b->size[2]);
-	// printf("%d %d %d\n", Z->size[0], Z->size[1], Z->size[2]);
-	int in_chan = X->size[0];
-	int out_chan = Z->size[0];
-	int wx = X->size[1];
-	int wy = X->size[2];
-	for (int ochan = 0; ochan < out_chan; ochan++) {
-    	int weight_wx = W[ochan].size[1];
-    	int weight_wy = W[ochan].size[2];
+	int in_chan = X_size[0];
+	int out_chan = Z_size[0];
+	int wx = X_size[1];
+	int wy = X_size[2];
+	int weight_wx = W_size[2];
+	int weight_wy = W_size[3];
+	for (int oc = 0; oc < out_chan; oc++) {
     	for (int x = 0; x < wx - weight_wx + 1; x++) {
     		for (int y = 0; y < wy - weight_wy + 1; y++) {
         		float sum = 0;
-           		for (int ichan = 0; ichan < in_chan; ichan++) {
+           		for (int ic = 0; ic < in_chan; ic++) {
         			for (int ix = 0; ix < weight_wx; ix++) {
         				for (int iy = 0; iy < weight_wy; iy++) {
-        					sum += X->data[ichan][x+ix][y+iy] * 
-        					  W[ochan].data[ichan][ix][iy];
+        					sum += X[ic*wx*wy+(x+ix)*wy+y+iy] * 
+        					       W[oc*in_chan*weight_wx*weight_wy+ic*weight_wx*weight_wy+ix*weight_wy+iy];
         				}
         			}
            		}
-    			Z->data[ochan][x][y] = sum + b->data[0][0][ochan];
+    			Z[oc*Z_size[1]*Z_size[2]+x*Z_size[2]+y] = sum + B[oc];
     		}
     	}
 	}
 }
 
-int Tensor::read(FILE * f)
-{
-	uint32_t dims[3];
-	for(int i = 0; i < 3 ;i++){
-		if( 1 != fread(&(dims[i]),sizeof(dims[0]),1,f))
-			return TENSOR_READ_FAILED;
-	}
-
-	int retval = TENSOR_READ_SUCCSEFULL;
-	if(dims[0] != size[0] || (dims[1] != size[1]) || (dims[2] != size[2])){
-		retval = TENSOR_READ_RESIZED;
-		resize(dims[0],dims[1],dims[2]);
-	}
-	uint32_t num_params = dims[0] * dims[1] * dims[2];
-	if(num_params != fread(&(data[0][0][0]),sizeof(data[0][0][0]),num_params,f))
-		return TENSOR_READ_FAILED;
-	return retval;
-}
-Tensor * readConv(Tensor * X, Tensor * Ref, Tensor * B , FILE * f)
-{
-	if(X->read(f) == TENSOR_READ_FAILED)
-		return NULL;
-	if(Ref->read(f) == TENSOR_READ_FAILED)
-		return NULL;
-	Tensor * W = new Tensor[Ref->size[0]]();
-	for(int i = 0; i < Ref->size[0] ; i++){
-		if(W[i].read(f) == TENSOR_READ_FAILED){
-			delete [] W;
-			return NULL;
-		}
-	}
-	if(B->read(f) == TENSOR_READ_FAILED){
-		delete [] W;
-		return NULL;
-	}
-	return W;
-}
-
 //Returns 1 if realloc was necessary
-void reallocIfNecessary(float ** out, uint32_t size[], uint32_t new_size[], int dimensions)
+void resizeTensor(float ** out, uint32_t size[], uint32_t new_size[], int dimensions)
 {
     uint32_t prev = 1;
     uint32_t next = 1;
@@ -310,17 +136,17 @@ int readConvRaw(float ** X, uint32_t X_size[3], float ** Ref, uint32_t Ref_size[
 {
     uint32_t new_X_size[3];
     if(!readTensorSize(f, new_X_size)) return 0;
-    reallocIfNecessary(X, X_size, new_X_size, 3); 
+    resizeTensor(X, X_size, new_X_size, 3); 
     if(!readTensorRaw(f, *X, X_size)) return 0;
 
     uint32_t new_Ref_size[3];
     if(!readTensorSize(f, new_Ref_size)) return 0;
-    reallocIfNecessary(Ref, Ref_size, new_Ref_size, 3); 
+    resizeTensor(Ref, Ref_size, new_Ref_size, 3); 
 	if(!readTensorRaw(f, *Ref, Ref_size)) return 0;
 
     uint32_t new_W_size[4] = {Ref_size[0]};
     if(!readTensorSize(f, &new_W_size[1])) return 0;
-    reallocIfNecessary(W, W_size, new_W_size, 4);
+    resizeTensor(W, W_size, new_W_size, 4);
 	for(int i = 0; i < Ref_size[0] ; i++){
     	if(i != 0) {
         	if(!readTensorSize(f, &new_W_size[1])) return 0;
@@ -330,7 +156,7 @@ int readConvRaw(float ** X, uint32_t X_size[3], float ** Ref, uint32_t Ref_size[
 
     uint32_t new_B_size[3];
     if(!readTensorSize(f, new_B_size)) return 0;
-    reallocIfNecessary(B, B_size, new_B_size, 3); 
+    resizeTensor(B, B_size, new_B_size, 3); 
     if(!readTensorRaw(f, *B, B_size)) return 0;
 
 	return 1;
@@ -365,11 +191,13 @@ void testConv(const char * infile)
 			if(R_size[0] > OUT_CHANNEL) printf("Too many output channels\n");
 			//Use FPGA for Conv2D_3x3:
     		//        in_sm, w_sm,	b_sm, in_w,      in_h,      in_c,      out_c,     out_sm
-        	EntryConv(X,     W,     B,    X_size[1], X_size[2], X_size[0], R_size[0], Z     );
+        	//EntryConv(X,     W,     B,    X_size[1], X_size[2], X_size[0], R_size[0], Z     );
+			convBasic(X,X_size, W,W_size, B,B_size, Z,R_size);
     		compareTensorsRaw(Z,R_size,R,R_size,1e-3);
 		} else {
     		printf("Skipped because not 3x3 kernel\n");
 		}
+		delete [] Z;
 	}
 	delete [] X;
 	delete [] R;
