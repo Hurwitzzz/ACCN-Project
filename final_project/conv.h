@@ -14,7 +14,7 @@ float& get_OUT(float tensor[OUT_CHANNEL*OUT_SIZE*OUT_SIZE], int ch, int row, int
 
 
 void EntryConv(float in_sm[IN_CHANNEL*IN_SIZE*IN_SIZE],
-	float w_sm[OUT_CHANNEL*IN_CHANNEL][KERNEL_SIZE][KERNEL_SIZE],
+	float w_sm[OUT_CHANNEL*IN_CHANNEL*KERNEL_SIZE*KERNEL_SIZE],
 	float b_sm[OUT_CHANNEL],
 	int in_w, int in_h, int in_c, int out_c,
 	float out_sm[OUT_CHANNEL*OUT_SIZE*OUT_SIZE]);
