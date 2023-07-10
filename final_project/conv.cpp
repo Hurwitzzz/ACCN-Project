@@ -56,19 +56,20 @@ L4:                 for(int c = 0; c < in_c; c++) {
                         } 
                     }
                     // sum up the result of one channel
-                    get_z(z,j,k,in_w) = 0;
+                    get_z(z,j,k,out_w) = 0;
+
                     for(int c = 0; c < in_c; c++) {
-                        get_z(z,j,k,in_w) += acc_channel[c]; // z[j][k] += acc_channel[c];
+                        get_z(z,j,k,out_w) += acc_channel[c]; // z[j][k] += acc_channel[c];
                     }
                     // add bias
-                    get_z(z,j,k,in_w) += b_sm[i]; // z[j][k] += b_sm[i];                      
+                    get_z(z,j,k,out_w) += b_sm[i]; // z[j][k] += b_sm[i];
                 } 
                     
             }
             // send the result to out_sm (in DRAM)
             for(int j = 0; j < out_w; j++) {
                 for(int k = 0; k < out_h; k++) {
-                    get_OUT(out_sm,i,j,k,out_w) = get_z(z,j,k,in_w); // out_sm[i][j][k] = z[j][k];
+                    get_OUT(out_sm,i,j,k,out_w) = get_z(z,j,k,out_w); // out_sm[i][j][k] = z[j][k];
                 }
             }
         }
