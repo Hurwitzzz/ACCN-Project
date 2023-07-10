@@ -156,6 +156,34 @@ int compareTensors(Tensor * y, Tensor * ref, int N, float limit){
 	return  ret;
 }
 
+// Compare two Tensor arrays of length N 
+int compareTensorsRaw(float* a, uint32_t a_size[3], float* ref, uint32_t ref_size[3], float limit){
+	if(a_size[0] != ref_size[0] || (a_size[1] != ref_size[1]) 
+			|| (a_size[2] != ref_size[2])){
+		throw std::runtime_error("Tensor dimensions don't match ! \n");
+	}
+	int i,j,k;
+	int ret = 0;
+	double abs_diff = 0;
+	for(int z = 0; z < a_size[0]; z++){
+	for(int y = 0; y < a_size[1]; y++){
+	for(int x = 0; x < a_size[2]; x++){
+    	int index = z*(a_size[2]*a_size[3]) + y*(a_size[3]) + x;
+		float diff = Fabs( a[index] -  ref[index] );
+		if((diff > limit) && (ret == 0)){
+			printf("Tensors differ at: [%d][%d][%d] by %f \n",
+					i,j,k,diff);
+			ret = 1;
+		}
+		abs_diff += diff;
+	}}}
+	printf("Total avg diff: %lf\n",abs_diff/(1.f * a_size[0] * a_size[1] * a_size[2]));
+	if(ret == 0){
+		printf("Tensors are equal!\n");
+	}
+	return  ret;
+}
+
 Tensor * padTensor(Tensor * X , uint32_t pad)
 {
 	int N = X->size[1] +  pad *2;
@@ -336,7 +364,7 @@ void testConv(const char * infile)
 			//Use FPGA for Conv2D_3x3:
         	EntryConv(X, (float (*)[3][3]) W, B, X_size[1], X_size[2], X_size[0], R_size[0], Z);
 		}
-		//TODO: compareTensors(&Z,&R,1,1e-3);
+		compareTensorsRaw(Z,R_size,R,R_size,1e-3);
 		delete [] W;
 	}
 	fclose(f);
