@@ -65,7 +65,6 @@ L4:                 for(int ic = 0; ic < in_c; ic++) {
                     }
                     // sum up the result of one channel
                     z[j_idx+k] = 0;
-
                     for(int ic = 0; ic < in_c; ic++) {
                         z[j_idx+k] += acc_channel[ic]; // z[j][k] += acc_channel[ic];
                     }
