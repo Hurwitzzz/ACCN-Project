@@ -53,10 +53,9 @@ int compareTensorsRaw(float* a, uint32_t a_size[3], float* ref, uint32_t ref_siz
 	for(int x = 0; x < a_size[2]; x++){
 		int index = z*(a_size[1]*a_size[2]) + y*(a_size[2]) + x;
 		float diff = Fabs( a[index] - ref[index] );
-		if((diff > limit) && (ret == 0)){
-			printf("Tensors differ at: [%d][%d][%d] by %f \n",
-					z,y,x,diff);
-			ret = 1;
+		if(diff > limit) {
+			if(ret == 0) printf("Tensors differ at: [%d][%d][%d] by %f \n",z,y,x,diff);
+			ret++;
 		}
 		abs_diff += diff;
 	}}}
@@ -64,7 +63,7 @@ int compareTensorsRaw(float* a, uint32_t a_size[3], float* ref, uint32_t ref_siz
 	if(ret == 0){
 		printf("Tensors are equal!\n");
 	}
-	return  ret;
+	return ret;
 }
 
 void convBasic(float* X, uint32_t X_size[3],
@@ -85,7 +84,7 @@ void convBasic(float* X, uint32_t X_size[3],
            		for (int ic = 0; ic < in_chan; ic++) {
         			for (int ix = 0; ix < weight_wx; ix++) {
         				for (int iy = 0; iy < weight_wy; iy++) {
-        					sum += X[ic*wx*wy+(x+ix)*wy+y+iy] * 
+							sum += X[ic*wx*wy+(x+ix)*wy+y+iy] *
         					       W[oc*in_chan*weight_wx*weight_wy+ic*weight_wx*weight_wy+ix*weight_wy+iy];
         				}
         			}
@@ -93,6 +92,49 @@ void convBasic(float* X, uint32_t X_size[3],
     			Z[oc*Z_size[1]*Z_size[2]+x*Z_size[2]+y] = sum + B[oc];
     		}
     	}
+	}
+}
+
+// Iterates in oc->ic->x->y->ix->iy order instead of oc->x->y->ic->ix->iy
+void convBasic2(float* X, uint32_t X_size[3],
+               float* W, uint32_t W_size[4],
+               float* B, uint32_t B_size[3],
+               float* Z, uint32_t Z_size[3])
+{
+	int in_chan = X_size[0];
+	int out_chan = Z_size[0];
+	int wx = X_size[1];
+	int wy = X_size[2];
+	int weight_wx = W_size[2];
+	int weight_wy = W_size[3];
+	int out_wx = wx - weight_wx + 1;
+	int out_wy = wy - weight_wy + 1;
+	for (int oc = 0; oc < out_chan; oc++) {
+		for (int x = 0; x < out_wx; x++) {
+			for (int y = 0; y < out_wy; y++) {
+				Z[oc*Z_size[1]*Z_size[2]+x*Z_size[2]+y] = B[oc];
+			}
+		}
+		for (int ic = 0; ic < in_chan; ic++) {
+			float * sums = new float[out_wx * out_wy](); // The sums for one input channel, zero-init
+			for (int x = 0; x < out_wx; x++) {
+				for (int y = 0; y < out_wy; y++) {
+					float sum = 0; // Sum for one input channel for one kernel application/output pixel
+					for (int ix = 0; ix < weight_wx; ix++) {
+						for (int iy = 0; iy < weight_wy; iy++) {
+							sum += X[ic*wx*wy+(x+ix)*wy+y+iy] *
+							       W[oc*in_chan*weight_wx*weight_wy+ic*weight_wx*weight_wy+ix*weight_wy+iy];
+						}
+					}
+					sums[x*out_wy+y] += sum;
+				}
+			}
+			for (int x = 0; x < out_wx; x++) {
+				for (int y = 0; y < out_wy; y++) {
+					Z[oc*Z_size[1]*Z_size[2]+x*Z_size[2]+y] += sums[x*out_wy+y];
+				}
+			}
+		}
 	}
 }
 
@@ -192,7 +234,7 @@ void testConv(const char * infile)
 			//Use FPGA for Conv2D_3x3:
     		//        in_sm, w_sm,	b_sm, in_w,      in_h,      in_c,      out_c,     out_sm
         	//EntryConv(X,     W,     B,    X_size[1], X_size[2], X_size[0], R_size[0], Z     );
-			convBasic(X,X_size, W,W_size, B,B_size, Z,R_size);
+			convBasic2(X,X_size, W,W_size, B,B_size, Z,R_size);
     		compareTensorsRaw(Z,R_size,R,R_size,1e-3);
 		} else {
     		printf("Skipped because not 3x3 kernel\n");
@@ -212,7 +254,6 @@ int main(){
 	for(int i = 0; i < ntests; i++){
 		EntryConv(x + (i*INPUT_SIZE),w + (i*KERNEL_SIZE), z + (i*OUTPUT_SIZE));
 	}*/
-	printf("All values are equal!\n");
 	return 0;
 }
 
