@@ -23,20 +23,20 @@ void Conv2D_3x3(float in_sm[IN_CHANNEL*IN_SIZE*IN_SIZE],
     float z[OUT_SIZE*OUT_SIZE]; // due to the limitation of BRAM, we can only store one channel of z
 
     // Perform convolution
-L1:    for(int i = 0; i < out_c; i++) {
+L1:    for(int oc = 0; oc < out_c; oc++) {
 L2:        for(int j = 0; j < out_w; j++) {
 L3:             for(int k = 0; k < out_h; k++) {
 
                     float acc_channel[IN_CHANNEL];      // create buffer for each channel  
                     float acc_kernel[KERNEL_SIZE * KERNEL_SIZE]; // create buffer for each kernel_size conv        
-L4:                 for(int c = 0; c < in_c; c++) {
+L4:                 for(int ic = 0; ic < in_c; ic++) {
 #pragma HLS PIPELINE II=1
                         // load x for each kernel, and load w
                         for(int p = 0; p < KERNEL_SIZE; p++) {
                             for(int q = 0; q < KERNEL_SIZE; q++) {
-                                get_w(w,p,q) = get_W(w_sm,i,c,p,q,in_c);  // w[p][q] = w_sm[i][c][p][q];   
+                                get_w(w,p,q) = get_W(w_sm,oc,ic,p,q,in_c);  // w[p][q] = w_sm[oc][ic][p][q];   
                                 if (q>0 && k==0){
-                                    get_in(x,p,q) =  get_IN(in_sm,c,(j+p),(q-1),in_w);      // x[p][q] = in_sm[c][j + p][q - 1];  
+                                    get_in(x,p,q) =  get_IN(in_sm,ic,(j+p),(q-1),in_w);      // x[p][q] = in_sm[ic][j + p][q - 1];  
                                 }
                             }
                         }
@@ -45,31 +45,31 @@ L4:                 for(int c = 0; c < in_c; c++) {
                         for (int p = 0; p < KERNEL_SIZE; p++) {
                             for (int q = 0; q < KERNEL_SIZE; q++) {
                                 // reuse the data in BRAM
-                                get_in(x,p,q) = (q == KERNEL_SIZE - 1) ? get_IN(in_sm,c,(j+p),(k+q),in_w) : get_in(x,p,(q+1));   // x[p][q] = (q == KERNEL_SIZE - 1) ? in_sm[c][j + p][k + q] : x[p][q + 1];
+                                get_in(x,p,q) = (q == KERNEL_SIZE - 1) ? get_IN(in_sm,ic,(j+p),(k+q),in_w) : get_in(x,p,(q+1));   // x[p][q] = (q == KERNEL_SIZE - 1) ? in_sm[ic][j + p][k + q] : x[p][q + 1];
                                 acc_kernel[p * KERNEL_SIZE + q] = get_in(x,p,q) * get_w(w,p,q); // x[p][q] * w[p][q];
                             }
                         }
                         // sum up the results of one kernel
-                        acc_channel[c] = 0;
+                        acc_channel[ic] = 0;
                         for(int p = 0; p < KERNEL_SIZE * KERNEL_SIZE; p++) {
-                            acc_channel[c] += acc_kernel[p];
+                            acc_channel[ic] += acc_kernel[p];
                         }
                     }
                     // sum up the result of one channel
                     get_z(z,j,k,out_w) = 0;
 
-                    for(int c = 0; c < in_c; c++) {
-                        get_z(z,j,k,out_w) += acc_channel[c]; // z[j][k] += acc_channel[c];
+                    for(int ic = 0; ic < in_c; ic++) {
+                        get_z(z,j,k,out_w) += acc_channel[ic]; // z[j][k] += acc_channel[ic];
                     }
                     // add bias
-                    get_z(z,j,k,out_w) += b_sm[i]; // z[j][k] += b_sm[i];
+                    get_z(z,j,k,out_w) += b_sm[oc]; // z[j][k] += b_sm[oc];
                 } 
                     
             }
             // send the result to out_sm (in DRAM)
             for(int j = 0; j < out_w; j++) {
                 for(int k = 0; k < out_h; k++) {
-                    get_OUT(out_sm,i,j,k,out_w) = get_z(z,j,k,out_w); // out_sm[i][j][k] = z[j][k];
+                    get_OUT(out_sm,oc,j,k,out_w) = get_z(z,j,k,out_w); // out_sm[oc][j][k] = z[j][k];
                 }
             }
         }
