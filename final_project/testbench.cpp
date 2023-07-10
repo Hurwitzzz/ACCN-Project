@@ -191,8 +191,8 @@ void testConv(const char * infile)
 			if(R_size[0] > OUT_CHANNEL) printf("Too many output channels\n");
 			//Use FPGA for Conv2D_3x3:
     		//        in_sm, w_sm,	b_sm, in_w,      in_h,      in_c,      out_c,     out_sm
-        	//EntryConv(X,     W,     B,    X_size[1], X_size[2], X_size[0], R_size[0], Z     );
-			convBasic(X,X_size, W,W_size, B,B_size, Z,R_size);
+        	EntryConv(X,     W,     B,    X_size[1], X_size[2], X_size[0], R_size[0], Z     );
+			// convBasic(X,X_size, W,W_size, B,B_size, Z,R_size);
     		compareTensorsRaw(Z,R_size,R,R_size,1e-3);
 		} else {
     		printf("Skipped because not 3x3 kernel\n");
@@ -213,7 +213,7 @@ int main(){
 	for(int i = 0; i < ntests; i++){
 		EntryConv(x + (i*INPUT_SIZE),w + (i*KERNEL_SIZE), z + (i*OUTPUT_SIZE));
 	}*/
-	printf("All values are equal!\n");
+	// printf("All values are equal!\n");
 	return 0;
 }
 
