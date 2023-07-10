@@ -3,10 +3,10 @@
 #include <cstdlib>
 
 /* in_w, in_h, etc. are the actual size */
-void Conv2D_3x3(float in_sm[IN_CHANNEL*IN_SIZE*IN_SIZE], 
-	float w_sm[OUT_CHANNEL*IN_CHANNEL*KERNEL_SIZE*KERNEL_SIZE], 
+void Conv2D_3x3(float in_sm[IN_CHANNEL*IN_SIZE*IN_SIZE],
+	float w_sm[OUT_CHANNEL*IN_CHANNEL*KERNEL_SIZE*KERNEL_SIZE],
 	float b_sm[OUT_CHANNEL],
-	int in_w, int in_h, int in_c, int out_c, 
+	int in_w, int in_h, int in_c, int out_c,
 	float out_sm[OUT_CHANNEL*OUT_SIZE*OUT_SIZE])
 {
 	int out_h = in_h - KERNEL_SIZE + 1;
@@ -23,30 +23,38 @@ void Conv2D_3x3(float in_sm[IN_CHANNEL*IN_SIZE*IN_SIZE],
     float z[OUT_SIZE*OUT_SIZE]; // due to the limitation of BRAM, we can only store one channel of z
 
     // Perform convolution
-L1:    for(int oc = 0; oc < out_c; oc++) {
-L2:        for(int j = 0; j < out_w; j++) {
+L1:		for(int oc = 0; oc < out_c; oc++) {
+			int oc_W_idx = oc * in_c * KERNEL_SIZE * KERNEL_SIZE;
+			int oc_OUT_idx = oc * out_w * out_h;
+L2:			for(int j = 0; j < out_w; j++) {
+				int j_idx = j * out_w;
 L3:             for(int k = 0; k < out_h; k++) {
-
                     float acc_channel[IN_CHANNEL];      // create buffer for each channel  
                     float acc_kernel[KERNEL_SIZE * KERNEL_SIZE]; // create buffer for each kernel_size conv        
 L4:                 for(int ic = 0; ic < in_c; ic++) {
 #pragma HLS PIPELINE II=1
+						int ic_IN_idx = ic * in_w * in_w;
+						int ic_W_idx = ic * KERNEL_SIZE * KERNEL_SIZE;
                         // load x for each kernel, and load w
                         for(int p = 0; p < KERNEL_SIZE; p++) {
+                            int p_idx = p * KERNEL_SIZE;
+                            int j_plus_p_IN_idx = (j+p) * in_w;
                             for(int q = 0; q < KERNEL_SIZE; q++) {
-                                get_w(w,p,q) = get_W(w_sm,oc,ic,p,q,in_c);  // w[p][q] = w_sm[oc][ic][p][q];   
+                                w[p_idx+q] = w_sm[oc_W_idx+ic_W_idx+p_idx+q];  // w[p][q] = w_sm[oc][ic][p][q];
                                 if (q>0 && k==0){
-                                    get_in(x,p,q) =  get_IN(in_sm,ic,(j+p),(q-1),in_w);      // x[p][q] = in_sm[ic][j + p][q - 1];  
+                                    x[p_idx+q] = in_sm[ic_IN_idx+j_plus_p_IN_idx+q-1];      // x[p][q] = in_sm[ic][j + p][q - 1];
                                 }
                             }
                         }
                     
 
                         for (int p = 0; p < KERNEL_SIZE; p++) {
+                            int p_idx = p * KERNEL_SIZE;
+                            int j_plus_p_IN_idx = (j+p) * in_w;
                             for (int q = 0; q < KERNEL_SIZE; q++) {
                                 // reuse the data in BRAM
-                                get_in(x,p,q) = (q == KERNEL_SIZE - 1) ? get_IN(in_sm,ic,(j+p),(k+q),in_w) : get_in(x,p,(q+1));   // x[p][q] = (q == KERNEL_SIZE - 1) ? in_sm[ic][j + p][k + q] : x[p][q + 1];
-                                acc_kernel[p * KERNEL_SIZE + q] = get_in(x,p,q) * get_w(w,p,q); // x[p][q] * w[p][q];
+                                x[p_idx+q] = (q == KERNEL_SIZE - 1) ? in_sm[ic_IN_idx+j_plus_p_IN_idx+k+q] : x[p_idx+q+1];   // x[p][q] = (q == KERNEL_SIZE - 1) ? in_sm[ic][j + p][k + q] : x[p][q + 1];
+                                acc_kernel[p * KERNEL_SIZE + q] = x[p_idx+q] * w[p_idx+q]; // x[p][q] * w[p][q];
                             }
                         }
                         // sum up the results of one kernel
@@ -56,20 +64,21 @@ L4:                 for(int ic = 0; ic < in_c; ic++) {
                         }
                     }
                     // sum up the result of one channel
-                    get_z(z,j,k,out_w) = 0;
+                    z[j_idx+k] = 0;
 
                     for(int ic = 0; ic < in_c; ic++) {
-                        get_z(z,j,k,out_w) += acc_channel[ic]; // z[j][k] += acc_channel[ic];
+                        z[j_idx+k] += acc_channel[ic]; // z[j][k] += acc_channel[ic];
                     }
                     // add bias
-                    get_z(z,j,k,out_w) += b_sm[oc]; // z[j][k] += b_sm[oc];
+                    z[j_idx+k] += b_sm[oc]; // z[j][k] += b_sm[oc];
                 } 
                     
             }
             // send the result to out_sm (in DRAM)
             for(int j = 0; j < out_w; j++) {
+				int j_idx = j * out_h;
                 for(int k = 0; k < out_h; k++) {
-                    get_OUT(out_sm,oc,j,k,out_w) = get_z(z,j,k,out_w); // out_sm[oc][j][k] = z[j][k];
+                    out_sm[oc_OUT_idx+j_idx+k] = z[j_idx+k]; // out_sm[oc][j][k] = z[j][k];
                 }
             }
         }
@@ -93,100 +102,4 @@ void EntryConv(float in_sm[IN_CHANNEL*IN_SIZE*IN_SIZE],
     #pragma HLS INTERFACE s_axilite port=out_sm 
 
     Conv2D_3x3(in_sm, w_sm, b_sm, in_w, in_h, in_c, out_c, out_sm);
-}
-
-
-
-
-
-
-/* Given index, get value
-    arg: 
-        float tensor[]: the tensor to get value from
-        int ch: channle
-        int row: 
-        int column
-*/
-
-// will memory be allocated when compiling? If yes, these functions waste too much memory
-
-float& get_in(float tensor[KERNEL_SIZE*KERNEL_SIZE],int row, int column)
-{
-    // if (row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
-    // {
-    //     printf("Error: get_x out of bound\n");
-    //     exit(EXIT_FAILURE);
-    // }
-    // else
-    {
-        return tensor[row * KERNEL_SIZE + column];
-    }
-}
-float& get_IN(float tensor[IN_CHANNEL*IN_SIZE*IN_SIZE], int ch, int row, int column, int in_w)
-{
-
-    // if (ch < 0 || ch >= IN_CHANNEL || row < 0 || row >= IN_SIZE || column < 0 || column >= IN_SIZE)
-    // {
-    //     printf("Error: get_X out of bound\n");
-    //     exit(EXIT_FAILURE);
-    // }
-    // else
-    {
-        return tensor[(ch * in_w + row) * in_w + column];
-    }
-}
-
-float& get_w(float tensor[KERNEL_SIZE*KERNEL_SIZE], int row, int column)
-{
-    // if (row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
-    // {
-    //     printf("Error: get_w out of bound\n");
-    //     exit(EXIT_FAILURE);
-    // }
-    // else
-    {
-        return tensor[row * KERNEL_SIZE + column];
-    }
-}
-float& get_W(float tensor[OUT_CHANNEL * IN_CHANNEL * KERNEL_SIZE * KERNEL_SIZE], int z_ch, int ch, int row, int column, int in_c)
-{
-    // if (z_ch < 0 || z_ch >= OUT_CHANNEL || ch < 0 || ch >= IN_CHANNEL || row < 0 || row >= KERNEL_SIZE || column < 0 || column >= KERNEL_SIZE)
-    // {
-    //     printf("Error: get_W out of bound\n");
-    //     exit(EXIT_FAILURE);
-    // }
-    // else
-    {
-        return tensor[(z_ch * in_c + ch) * KERNEL_SIZE * KERNEL_SIZE + (row * KERNEL_SIZE + column)];
-    }
-}
-float& get_z(float tensor[OUT_SIZE * OUT_SIZE], int row, int column, int out_w)
-{
-    // if (row < 0 || row >= OUT_SIZE || column < 0 || column >= OUT_SIZE)
-    // {
-    //     printf("Error: get_z out of bound\n");
-    //     exit(EXIT_FAILURE);
-    // }
-    // else
-    {
-        printf("Error: get_z out of bound\n");
-        exit(EXIT_FAILURE);
-    }
-    // else
-    {
-        return tensor[row * out_w + column];
-    }
-}
-
-float& get_OUT(float tensor[OUT_CHANNEL*OUT_SIZE*OUT_SIZE], int ch, int row, int column, int out_w)
-{
-    // if (ch < 0 || ch >= OUT_CHANNEL || row < 0 || row >= OUT_SIZE || column < 0 || column >= OUT_SIZE)
-    // {
-    //     printf("Error: get_OUT out of bound\n");
-    //     exit(EXIT_FAILURE);
-    // }
-    // else
-    {
-        return tensor[(ch * out_w + row) * out_w + column];
-    }
 }
