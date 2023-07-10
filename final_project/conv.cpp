@@ -35,8 +35,10 @@ L4:                 for(int c = 0; c < in_c; c++) {
                         for(int p = 0; p < KERNEL_SIZE; p++) {
                             for(int q = 0; q < KERNEL_SIZE; q++) {
                                 get_w(w,p,q) = get_W(w_sm,i,c,p,q,in_c);  // w[p][q] = w_sm[i][c][p][q];   
+                                if (q>0 && k==0){
                                     get_in(x,p,q) =  get_IN(in_sm,c,(j+p),(q-1),in_w);      // x[p][q] = in_sm[c][j + p][q - 1];  
                                 }
+                            }
                         }
                     
 
