@@ -4,9 +4,9 @@
 
 #define KERNEL_SIZE 3
 #define IN_SIZE 140 // if possible, set to 128 
-#define IN_CHANNEL 64
+#define IN_CHANNEL 512
 #define OUT_SIZE (IN_SIZE - KERNEL_SIZE + 1)
-#define OUT_CHANNEL 256
+#define OUT_CHANNEL 512
 
 void EntryConv(float IN[IN_CHANNEL*IN_SIZE*IN_SIZE],
 	float W[OUT_CHANNEL*IN_CHANNEL*KERNEL_SIZE*KERNEL_SIZE],
