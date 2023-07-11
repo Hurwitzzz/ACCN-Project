@@ -5,7 +5,6 @@
 #include <cmath>
 #include "stdint.h"
 #include <stdio.h>
-#include <stdexcept>
 #include "common.h"
 
 int main(){
@@ -33,13 +32,12 @@ int main(){
 
 		//convBasic(&X,W,&B,&Z);
 		if(W_size[2] == 3 && W_size[3] == 3) {
-    		if(X_size[0] > IN_CHANNEL || X_size[1] > IN_SIZE || X_size[2] > IN_SIZE || R_size[0] > OUT_CHANNEL) {
-        		printf("Input/Output too big\n"); continue;
-    		}
+			if(X_size[0] > IN_CHANNEL || X_size[1] > IN_SIZE || X_size[2] > IN_SIZE || R_size[0] > OUT_CHANNEL) {
+				printf("Input/Output too big\n"); continue;
+			}
 			//Use FPGA for Conv2D_3x3:
     		//        in_sm, w_sm,	b_sm, in_w,      in_h,      in_c,      out_c,     out_sm
         	EntryConv(X,     W,     B,    X_size[1], X_size[2], X_size[0], R_size[0], Z     );
-			//convBasic3(X,X_size, W,W_size, B,B_size, Z,R_size);
 			//convBasic(X,X_size, W,W_size, B,B_size, Z,R_size);
     		compareTensorsRaw(Z,R_size,R,R_size,1e-3);
 		} else {

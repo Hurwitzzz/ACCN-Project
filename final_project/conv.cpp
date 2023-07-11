@@ -11,87 +11,70 @@ void Conv2D_3x3(float IN[IN_CHANNEL*IN_SIZE*IN_SIZE],
 {
 	int out_h = in_h - KERNEL_SIZE + 1;
 	int out_w = in_w - KERNEL_SIZE + 1;
-    // Initialize output tensor to zero
-    for(int i = 0; i < out_c * out_h * out_w; i++){
-	    OUT[i] = 0;
-    }
 
-    /* Store in BRAM */
-    float in[KERNEL_SIZE*KERNEL_SIZE];
-    float w[KERNEL_SIZE*KERNEL_SIZE];
-    float b[OUT_CHANNEL];
-    float out[OUT_SIZE*OUT_SIZE]; // due to the limitation of BRAM, we can only store one channel of OUT
+	/* Store in BRAM */
+	float in[KERNEL_SIZE*KERNEL_SIZE];
+	float w[IN_CHANNEL*KERNEL_SIZE*KERNEL_SIZE];
+	float b[OUT_CHANNEL];
 
-    // Perform convolution
-L1:		for(int oc = 0; oc < out_c; oc++) {
-			int oc_W_idx = oc * in_c * KERNEL_SIZE * KERNEL_SIZE;
-			int oc_OUT_idx = oc * out_w * out_h;
-            float acc_channel[IN_CHANNEL][OUT_SIZE*OUT_SIZE];
-            for (int ic = 0; ic < in_c; ic++) {
-                int ic_IN_idx = ic * in_w * in_w;
-                int ic_W_idx = ic * KERNEL_SIZE * KERNEL_SIZE;
-                
-                // load w
-                for(int p = 0; p < KERNEL_SIZE; p++) {
-                    int p_idx = p * KERNEL_SIZE;
-                    for(int q = 0; q < KERNEL_SIZE; q++) {
-                        w[p_idx+q] = W[oc_W_idx+ic_W_idx+p_idx+q]; // w[p][q] = W[oc][ic][p][q];
-                    }
-                }
+	// Perform convolution
+OC:	for(int oc = 0; oc < out_c; oc++) {
 
-    L2:			for(int y = 0; y < out_h; y++) {
-                    int y_idx = y * out_w;
-    L3:             for(int x = 0; x < out_w; x++) {
-                        // float acc_channel[IN_CHANNEL];      // create buffer for each channel  
-                        float acc_kernel[KERNEL_SIZE * KERNEL_SIZE]; // create buffer for each kernel_size conv        
-                            
-                        // load x for each kernel
-                        for(int p = 0; p < KERNEL_SIZE; p++) {
-                            int p_idx = p * KERNEL_SIZE;
-                            int y_plus_p_IN_idx = (y+p) * in_w;
-                            for(int q = 0; q < KERNEL_SIZE; q++) {
-                                if (q>0 && x==0){
-                                    in[p_idx+q] = IN[ic_IN_idx+y_plus_p_IN_idx+q-1];      // in[p][q] = IN[ic][y + p][q - 1];
-                                }
-                            }
-                        }
-                    
-                        // Conv calculation
-                        for (int p = 0; p < KERNEL_SIZE; p++) {
-                            int p_idx = p * KERNEL_SIZE;
-                            int y_plus_p_IN_idx = (y+p) * in_w;
-                            for (int q = 0; q < KERNEL_SIZE; q++) {
-                                // reuse the data in BRAM
-                                in[p_idx+q] = (q == KERNEL_SIZE - 1) ? IN[ic_IN_idx+y_plus_p_IN_idx+x+q] : in[p_idx+q+1];   // in[p][q] = (q == KERNEL_SIZE - 1) ? IN[ic][y + p][x + q] : in[p][q + 1];
-                                acc_kernel[p * KERNEL_SIZE + q] = in[p_idx+q] * w[p_idx+q]; // in[p][q] * w[p][q];
-                            }
-                        }
-                        // sum up the results of one kernel
-                        acc_channel[ic][y_idx + x] = 0;
-                        for(int p = 0; p < KERNEL_SIZE * KERNEL_SIZE; p++) {
-                            acc_channel[ic][y_idx + x] += acc_kernel[p];
-                        }
-                    } // for x
-                        
-                } // for y
-            } //for ic
+		// load w
+		int oc_W_idx = oc * in_c * KERNEL_SIZE * KERNEL_SIZE;
+		for(int i = 0; i < in_c * KERNEL_SIZE * KERNEL_SIZE; i++) {
+			w[i] = W[oc_W_idx+i]; // w = W[oc];
+		}
 
-            // sum up the result of one output channel
-            // send the result to OUT (in DRAM)
-            for(int y = 0; y < out_h; y++) {
-                int y_idx = y * out_w;
-                for(int x = 0; x < out_w; x++) {
-                    out[y_idx+x] = 0;
-                    for(int ic = 0; ic < in_c; ic++) {
-                        out[y_idx+x] += acc_channel[ic][y_idx+x]; // out[y][x] += acc_channel[ic];
-                    }
-                    // add bias
-                    out[y_idx+x]+=B[oc];
-                    OUT[oc_OUT_idx+y_idx+x] = out[y_idx+x]; // OUT[oc][y][x] = out[y][x];
-                }
-            }
-        }
-        
+		int oc_OUT_idx = oc * out_w * out_h;
+Y:		for(int y = 0; y < out_h; y++) {
+			float acc_row[OUT_SIZE]; // One row of output
+			int y_idx = y * out_w;
+
+IC:			for(int ic = 0; ic < in_c; ic++) {
+				int ic_IN_idx = ic * in_w * in_w;
+				int ic_W_idx = ic * KERNEL_SIZE * KERNEL_SIZE;
+
+X:				for(int x = 0; x < out_w; x++) {
+					float acc_kernel[KERNEL_SIZE * KERNEL_SIZE]; // create buffer for each kernel_size conv
+
+					// load x for each kernel
+					for(int p = 0; p < KERNEL_SIZE; p++) {
+						int p_idx = p * KERNEL_SIZE;
+						int y_plus_p_IN_idx = (y+p) * in_w;
+						for(int q = 0; q < KERNEL_SIZE; q++) {
+							if (q>0 && x==0){
+								in[p_idx+q] = IN[ic_IN_idx+y_plus_p_IN_idx+q-1];	  // in[p][q] = IN[ic][y + p][q - 1];
+							}
+						}
+					}
+
+					// Conv calculation
+					for(int p = 0; p < KERNEL_SIZE; p++) {
+						int p_idx = p * KERNEL_SIZE;
+						int y_plus_p_IN_idx = (y+p) * in_w;
+						for (int q = 0; q < KERNEL_SIZE; q++) {
+							// reuse the data in BRAM
+							in[p_idx+q] = (q == KERNEL_SIZE - 1) ? IN[ic_IN_idx+y_plus_p_IN_idx+x+q] : in[p_idx+q+1];   // in[p][q] = (q == KERNEL_SIZE - 1) ? IN[ic][y + p][x + q] : in[p][q + 1];
+							acc_kernel[p_idx+q] = in[p_idx+q] * w[ic_W_idx+p_idx+q]; // in[p][q] * w[p][q];
+						}
+					}
+
+					// sum up the results of one kernel
+					acc_row[x] = 0;
+					for(int i = 0; i < KERNEL_SIZE * KERNEL_SIZE; i++) {
+						acc_row[x] += acc_kernel[i];
+					}
+				} // for x
+
+			} // for ic
+
+			// add bias and send one row to OUT (in DRAM)
+			for(int x = 0; x < out_w; x++) {
+				OUT[oc_OUT_idx+y_idx+x] = acc_row[x] + B[oc]; // OUT[oc][y][x] = acc_row[x] + B[oc];
+			}
+		} //for y
+	}
 }
 
 

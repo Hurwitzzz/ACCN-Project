@@ -113,7 +113,7 @@ void convBasic2(float* X, uint32_t X_size[3],
 			}
 		}
 		for (int ic = 0; ic < in_c; ic++) {
-			float * sums = new float[out_h * out_w](); // yhe sums for one input channel, zero-init
+			float * sums = new float[out_h * out_w](); // the sums for one input channel, zero-init
 			for (int y = 0; y < out_h; y++) {
 				for (int x = 0; x < out_w; x++) {
 					float sum = 0; // Sum for one input channel for one kernel application/output pixel
@@ -151,11 +151,6 @@ void convBasic3(float* X, uint32_t X_size[3],
 	int out_w = in_w - kernel_w + 1;
 	for (int oc = 0; oc < out_c; oc++) {
 		for (int y = 0; y < out_h; y++) {
-			for (int x = 0; x < out_w; x++) {
-				Z[oc*Z_size[1]*Z_size[2]+y*Z_size[2]+x] = B[oc];
-			}
-		}
-		for (int y = 0; y < out_h; y++) {
 			float * sums = new float[out_w](); // One row of output
 			for (int ic = 0; ic < in_c; ic++) {
 				for (int x = 0; x < out_w; x++) {
@@ -170,7 +165,7 @@ void convBasic3(float* X, uint32_t X_size[3],
 				}
 			}
 			for (int x = 0; x < out_w; x++) {
-				Z[oc*Z_size[1]*Z_size[2]+y*Z_size[2]+x] += sums[x];
+				Z[oc*Z_size[1]*Z_size[2]+y*Z_size[2]+x] = sums[x] + B[oc];
 			}
 		}
 	}
