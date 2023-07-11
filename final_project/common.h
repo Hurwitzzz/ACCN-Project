@@ -62,131 +62,115 @@ int compareTensorsRaw(float* a, uint32_t a_size[3], float* ref, uint32_t ref_siz
 	return ret;
 }
 
+// Iterates in oc->y->x->ic->iy->ix order
 void convBasic(float* X, uint32_t X_size[3],
                float* W, uint32_t W_size[4],
                float* B, uint32_t B_size[3],
                float* Z, uint32_t Z_size[3])
 {
-	int in_chan = X_size[0];
-	int out_chan = Z_size[0];
-	int wx = X_size[1];
-	int wy = X_size[2];
-	int weight_wx = W_size[2];
-	int weight_wy = W_size[3];
-	for (int oc = 0; oc < out_chan; oc++) {
-    	for (int x = 0; x < wx - weight_wx + 1; x++) {
-    		for (int y = 0; y < wy - weight_wy + 1; y++) {
-        		float sum = 0;
-           		for (int ic = 0; ic < in_chan; ic++) {
-        			for (int ix = 0; ix < weight_wx; ix++) {
-        				for (int iy = 0; iy < weight_wy; iy++) {
-							sum += X[ic*wx*wy+(x+ix)*wy+y+iy] *
-        					       W[oc*in_chan*weight_wx*weight_wy+ic*weight_wx*weight_wy+ix*weight_wy+iy];
-        				}
-        			}
-           		}
-    			Z[oc*Z_size[1]*Z_size[2]+x*Z_size[2]+y] = sum + B[oc];
-    		}
-    	}
+	int in_c = X_size[0];
+	int out_c = Z_size[0];
+	int in_h = X_size[1];
+	int in_w = X_size[2];
+	int kernel_h = W_size[2];
+	int kernel_w = W_size[3];
+	for (int oc = 0; oc < out_c; oc++) {
+		for (int y = 0; y < in_h - kernel_h + 1; y++) {
+			for (int x = 0; x < in_w - kernel_w + 1; x++) {
+				float sum = 0;
+				for (int ic = 0; ic < in_c; ic++) {
+					for (int iy = 0; iy < kernel_h; iy++) {
+						for (int ix = 0; ix < kernel_w; ix++) {
+							sum += X[ic*in_h*in_w+(y+iy)*in_w+x+ix] *
+							       W[oc*in_c*kernel_h*kernel_w+ic*kernel_h*kernel_w+iy*kernel_w+ix];
+						}
+					}
+				}
+				Z[oc*Z_size[1]*Z_size[2]+y*Z_size[2]+x] = sum + B[oc];
+			}
+		}
 	}
 }
 
-// Iterates in oc->ic->x->y->ix->iy order instead of oc->x->y->ic->ix->iy
+// Iterates in oc->ic->y->x->iy->ix order
 void convBasic2(float* X, uint32_t X_size[3],
                float* W, uint32_t W_size[4],
                float* B, uint32_t B_size[3],
                float* Z, uint32_t Z_size[3])
 {
-	int in_chan = X_size[0];
-	int out_chan = Z_size[0];
-	int wx = X_size[1];
-	int wy = X_size[2];
-	int weight_wx = W_size[2];
-	int weight_wy = W_size[3];
-	int out_wx = wx - weight_wx + 1;
-	int out_wy = wy - weight_wy + 1;
-	for (int oc = 0; oc < out_chan; oc++) {
-		for (int x = 0; x < out_wx; x++) {
-			for (int y = 0; y < out_wy; y++) {
-				Z[oc*Z_size[1]*Z_size[2]+x*Z_size[2]+y] = B[oc];
+	int in_c = X_size[0];
+	int out_c = Z_size[0];
+	int in_h = X_size[1];
+	int in_w = X_size[2];
+	int kernel_h = W_size[2];
+	int kernel_w = W_size[3];
+	int out_h = in_h - kernel_h + 1;
+	int out_w = in_w - kernel_w + 1;
+	for (int oc = 0; oc < out_c; oc++) {
+		for (int y = 0; y < out_h; y++) {
+			for (int x = 0; x < out_w; x++) {
+				Z[oc*Z_size[1]*Z_size[2]+y*Z_size[2]+x] = B[oc];
 			}
 		}
-		for (int ic = 0; ic < in_chan; ic++) {
-			float * sums = new float[out_wx * out_wy](); // The sums for one input channel, zero-init
-			for (int x = 0; x < out_wx; x++) {
-				for (int y = 0; y < out_wy; y++) {
+		for (int ic = 0; ic < in_c; ic++) {
+			float * sums = new float[out_h * out_w](); // yhe sums for one input channel, zero-init
+			for (int y = 0; y < out_h; y++) {
+				for (int x = 0; x < out_w; x++) {
 					float sum = 0; // Sum for one input channel for one kernel application/output pixel
-					for (int ix = 0; ix < weight_wx; ix++) {
-						for (int iy = 0; iy < weight_wy; iy++) {
-							sum += X[ic*wx*wy+(x+ix)*wy+y+iy] *
-							       W[oc*in_chan*weight_wx*weight_wy+ic*weight_wx*weight_wy+ix*weight_wy+iy];
+					for (int iy = 0; iy < kernel_h; iy++) {
+						for (int ix = 0; ix < kernel_w; ix++) {
+							sum += X[ic*in_h*in_w+(y+iy)*in_w+x+ix] *
+							       W[oc*in_c*kernel_h*kernel_w+ic*kernel_h*kernel_w+iy*kernel_w+ix];
 						}
 					}
-					sums[x*out_wy+y] += sum;
+					sums[y*out_w+x] += sum;
 				}
 			}
-			for (int x = 0; x < out_wx; x++) {
-				for (int y = 0; y < out_wy; y++) {
-					Z[oc*Z_size[1]*Z_size[2]+x*Z_size[2]+y] += sums[x*out_wy+y];
+			for (int y = 0; y < out_h; y++) {
+				for (int x = 0; x < out_w; x++) {
+					Z[oc*Z_size[1]*Z_size[2]+y*Z_size[2]+x] += sums[y*out_w+x];
 				}
 			}
 		}
 	}
 }
 
-// Iterates in oc->ic->x->y->ix->iy order instead of oc->x->y->ic->ix->iy
+// Iterates in oc->y->ic->x->iy->ix order
 void convBasic3(float* X, uint32_t X_size[3],
                float* W, uint32_t W_size[4],
                float* B, uint32_t B_size[3],
                float* Z, uint32_t Z_size[3])
 {
-	int in_chan = X_size[0];
-	int out_chan = Z_size[0];
-	int wx = X_size[1];
-	int wy = X_size[2];
-	int weight_wx = W_size[2];
-	int weight_wy = W_size[3];
-	int out_wx = wx - weight_wx + 1;
-	int out_wy = wy - weight_wy + 1;
-
-	//BRAM buffers:
-    float w[KERNEL_SIZE*KERNEL_SIZE];
-    float z[OUT_SIZE*OUT_SIZE];
-    //float b[OUT_CHANNEL];
-	for (int oc = 0; oc < out_chan; oc++) {
-		for (int x = 0; x < out_wx; x++) {
-			for (int y = 0; y < out_wy; y++) {
-				Z[oc*Z_size[1]*Z_size[2]+x*Z_size[2]+y] = B[oc];
+	int in_c = X_size[0];
+	int out_c = Z_size[0];
+	int in_h = X_size[1];
+	int in_w = X_size[2];
+	int kernel_h = W_size[2];
+	int kernel_w = W_size[3];
+	int out_h = in_h - kernel_h + 1;
+	int out_w = in_w - kernel_w + 1;
+	for (int oc = 0; oc < out_c; oc++) {
+		for (int y = 0; y < out_h; y++) {
+			for (int x = 0; x < out_w; x++) {
+				Z[oc*Z_size[1]*Z_size[2]+y*Z_size[2]+x] = B[oc];
 			}
 		}
-		for (int ic = 0; ic < in_chan; ic++) {
-
-			// load w
-            for(int p = 0; p < KERNEL_SIZE; p++) {
-                int p_idx = p * KERNEL_SIZE;
-                for(int q = 0; q < KERNEL_SIZE; q++) {
-                    // w[p][q] = w_sm[oc][ic][p][q];
-                    w[p_idx+q] = W[oc*in_chan*weight_wx*weight_wy+ic*weight_wx*weight_wy+p*weight_wy+q];
-                }
-            }
-
-			float * sums = new float[out_wx * out_wy](); // The sums for one input channel, zero-init
-			for (int x = 0; x < out_wx; x++) {
-				for (int y = 0; y < out_wy; y++) {
+		for (int y = 0; y < out_h; y++) {
+			float * sums = new float[out_w](); // One row of output
+			for (int ic = 0; ic < in_c; ic++) {
+				for (int x = 0; x < out_w; x++) {
 					float sum = 0; // Sum for one input channel for one kernel application/output pixel
-					for (int ix = 0; ix < weight_wx; ix++) {
-						for (int iy = 0; iy < weight_wy; iy++) {
-							sum += X[ic*wx*wy+(x+ix)*wy+y+iy] *
-							       w[ix*weight_wy+iy];
+					for (int iy = 0; iy < kernel_h; iy++) {
+						for (int ix = 0; ix < kernel_w; ix++) {
+							sum += X[ic*in_h*in_w+(y+iy)*in_w+x+ix] *
+							       W[oc*in_c*kernel_h*kernel_w+ic*kernel_h*kernel_w+iy*kernel_w+ix];
 						}
 					}
-					sums[x*out_wy+y] += sum;
+					sums[x] += sum;
 				}
 			}
-			for (int x = 0; x < out_wx; x++) {
-				for (int y = 0; y < out_wy; y++) {
-					Z[oc*Z_size[1]*Z_size[2]+x*Z_size[2]+y] += sums[x*out_wy+y];
-				}
+			for (int x = 0; x < out_w; x++) {
+				Z[oc*Z_size[1]*Z_size[2]+y*Z_size[2]+x] += sums[x];
 			}
 		}
 	}
