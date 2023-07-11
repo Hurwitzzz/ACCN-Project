@@ -85,13 +85,15 @@ L1:		for(int oc = 0; oc < out_c; oc++) {
             }
 
             // sum up the result of one output channel
-            
-
             // send the result to out_sm (in DRAM)
             for(int j = 0; j < out_w; j++) {
-				int j_idx = j * out_h;
+                int j_idx = j * out_h;                
                 for(int k = 0; k < out_h; k++) {
-                    out_sm[oc_OUT_idx+j_idx+k] = z[j_idx+k]; // out_sm[oc][j][k] = z[j][k];
+                    z[j_idx+k] = 0;                    
+                    for(int ic = 0; ic < in_c; ic++) {
+                        z[j_idx+k] += acc_channel[ic][j_idx+k]; // z[j][k] += acc_channel[ic];                    
+                    }
+                    out_sm[oc_OUT_idx+j_idx+k] = z[j_idx+k]; // out_sm[oc][j][k] = z[j][k];                
                 }
             }
         }
