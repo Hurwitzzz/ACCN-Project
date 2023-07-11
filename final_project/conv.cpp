@@ -38,19 +38,18 @@ IC:			for(int ic = 0; ic < in_c; ic++) {
 				int ic_IN_idx = ic * in_w * in_w;
 				int ic_W_idx = ic * KERNEL_SIZE * KERNEL_SIZE;
 
+
+				// load x for each kernel
+				for(int p = 0; p < KERNEL_SIZE; p++) {
+					int p_idx = p * KERNEL_SIZE;
+					int y_plus_p_IN_idx = (y+p) * in_w;
+					for(int q = 1; q < KERNEL_SIZE; q++) {
+						in[p_idx+q] = IN[ic_IN_idx+y_plus_p_IN_idx+q-1];	  // in[p][q] = IN[ic][y + p][q - 1];
+					}
+				}
+
 X:				for(int x = 0; x < out_w; x++) {
 					float acc_kernel[KERNEL_SIZE * KERNEL_SIZE]; // create buffer for each kernel_size conv
-
-					// load x for each kernel
-					if(x==0) {
-						for(int p = 0; p < KERNEL_SIZE; p++) {
-							int p_idx = p * KERNEL_SIZE;
-							int y_plus_p_IN_idx = (y+p) * in_w;
-							for(int q = 1; q < KERNEL_SIZE; q++) {
-								in[p_idx+q] = IN[ic_IN_idx+y_plus_p_IN_idx+q-1];	  // in[p][q] = IN[ic][y + p][q - 1];
-							}
-						}
-					}
 
 					// Conv calculation
 					for(int p = 0; p < KERNEL_SIZE; p++) {
