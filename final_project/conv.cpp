@@ -22,7 +22,7 @@ OC:	for(int oc = 0; oc < out_c; oc++) {
 
 		// load w
 		int oc_W_idx = oc * in_c * KERNEL_SIZE * KERNEL_SIZE;
-		for(int i = 0; i < in_c * KERNEL_SIZE * KERNEL_SIZE; i++) {
+LW:		for(int i = 0; i < in_c * KERNEL_SIZE * KERNEL_SIZE; i++) {
 			w[i] = W[oc_W_idx+i]; // w = W[oc];
 		}
 
@@ -30,7 +30,7 @@ OC:	for(int oc = 0; oc < out_c; oc++) {
 Y:		for(int y = 0; y < out_h; y++) {
 			float acc_row[OUT_SIZE]; // One row of output
 			int y_idx = y * out_w;
-			for(int x = 0; x < out_w; x++) {
+ZR:			for(int x = 0; x < out_w; x++) {
 				acc_row[x] = 0;
 			}
 
@@ -40,10 +40,10 @@ IC:			for(int ic = 0; ic < in_c; ic++) {
 
 
 				// load x for each kernel
-				for(int p = 0; p < KERNEL_SIZE; p++) {
+IY:				for(int p = 0; p < KERNEL_SIZE; p++) {
 					int p_idx = p * KERNEL_SIZE;
 					int y_plus_p_IN_idx = (y+p) * in_w;
-					for(int q = 1; q < KERNEL_SIZE; q++) {
+IX:					for(int q = 1; q < KERNEL_SIZE; q++) {
 						in[p_idx+q] = IN[ic_IN_idx+y_plus_p_IN_idx+q-1];	  // in[p][q] = IN[ic][y + p][q - 1];
 					}
 				}
@@ -52,10 +52,10 @@ X:				for(int x = 0; x < out_w; x++) {
 					float acc_kernel[KERNEL_SIZE * KERNEL_SIZE]; // create buffer for each kernel_size conv
 
 					// Conv calculation
-					for(int p = 0; p < KERNEL_SIZE; p++) {
+CY:					for(int p = 0; p < KERNEL_SIZE; p++) {
 						int p_idx = p * KERNEL_SIZE;
 						int y_plus_p_IN_idx = (y+p) * in_w;
-						for (int q = 0; q < KERNEL_SIZE; q++) {
+CX:						for (int q = 0; q < KERNEL_SIZE; q++) {
 							// reuse the data in BRAM
 							in[p_idx+q] = (q == KERNEL_SIZE - 1) ? IN[ic_IN_idx+y_plus_p_IN_idx+x+q] : in[p_idx+q+1];   // in[p][q] = (q == KERNEL_SIZE - 1) ? IN[ic][y + p][x + q] : in[p][q + 1];
 							acc_kernel[p_idx+q] = in[p_idx+q] * w[ic_W_idx+p_idx+q]; // in[p][q] * w[p][q];
@@ -63,7 +63,7 @@ X:				for(int x = 0; x < out_w; x++) {
 					}
 
 					// sum up the results of one kernel
-					for(int i = 0; i < KERNEL_SIZE * KERNEL_SIZE; i++) {
+AK:					for(int i = 0; i < KERNEL_SIZE * KERNEL_SIZE; i++) {
 						acc_row[x] += acc_kernel[i];
 					}
 				} // for x
@@ -71,7 +71,7 @@ X:				for(int x = 0; x < out_w; x++) {
 			} // for ic
 
 			// add bias and send one row to OUT (in DRAM)
-			for(int x = 0; x < out_w; x++) {
+WO:			for(int x = 0; x < out_w; x++) {
 				OUT[oc_OUT_idx+y_idx+x] = acc_row[x] + B[oc]; // OUT[oc][y][x] = acc_row[x] + B[oc];
 			}
 		} //for y
