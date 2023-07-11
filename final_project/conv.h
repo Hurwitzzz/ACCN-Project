@@ -8,11 +8,11 @@
 #define OUT_SIZE (IN_SIZE - KERNEL_SIZE + 1)
 #define OUT_CHANNEL 256
 
-void EntryConv(float in_sm[IN_CHANNEL*IN_SIZE*IN_SIZE],
-	float w_sm[OUT_CHANNEL*IN_CHANNEL*KERNEL_SIZE*KERNEL_SIZE],
-	float b_sm[OUT_CHANNEL],
+void EntryConv(float IN[IN_CHANNEL*IN_SIZE*IN_SIZE],
+	float W[OUT_CHANNEL*IN_CHANNEL*KERNEL_SIZE*KERNEL_SIZE],
+	float B[OUT_CHANNEL],
 	int in_w, int in_h, int in_c, int out_c,
-	float out_sm[OUT_CHANNEL*OUT_SIZE*OUT_SIZE]);
+	float OUT[OUT_CHANNEL*OUT_SIZE*OUT_SIZE]);
 
 
 #endif
