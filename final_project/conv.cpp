@@ -26,28 +26,37 @@ void Conv2D_3x3(float in_sm[IN_CHANNEL*IN_SIZE*IN_SIZE],
 L1:		for(int oc = 0; oc < out_c; oc++) {
 			int oc_W_idx = oc * in_c * KERNEL_SIZE * KERNEL_SIZE;
 			int oc_OUT_idx = oc * out_w * out_h;
-L2:			for(int j = 0; j < out_w; j++) {
-				int j_idx = j * out_w;
-L3:             for(int k = 0; k < out_h; k++) {
-                    float acc_channel[IN_CHANNEL];      // create buffer for each channel  
-                    float acc_kernel[KERNEL_SIZE * KERNEL_SIZE]; // create buffer for each kernel_size conv        
-L4:                 for(int ic = 0; ic < in_c; ic++) {
-#pragma HLS PIPELINE II=1
-						int ic_IN_idx = ic * in_w * in_w;
-						int ic_W_idx = ic * KERNEL_SIZE * KERNEL_SIZE;
-                        // load x for each kernel, and load w
+            float acc_channel[IN_CHANNEL][OUT_SIZE*OUT_SIZE];
+            for (int ic = 0; ic < in_c; ic++) {
+                int ic_IN_idx = ic * in_w * in_w;
+                int ic_W_idx = ic * KERNEL_SIZE * KERNEL_SIZE;
+                
+                // load w
+                for(int p = 0; p < KERNEL_SIZE; p++) {
+                    int p_idx = p * KERNEL_SIZE;
+                    for(int q = 0; q < KERNEL_SIZE; q++) {
+                        w[p_idx+q] = w_sm[oc_W_idx+ic_W_idx+p_idx+q]; // w[p][q] = w_sm[oc][ic][p][q];
+                    }
+                }
+
+    L2:			for(int j = 0; j < out_h; j++) {
+                    int j_idx = j * out_w;
+    L3:             for(int k = 0; k < out_w; k++) {
+                        // float acc_channel[IN_CHANNEL];      // create buffer for each channel  
+                        float acc_kernel[KERNEL_SIZE * KERNEL_SIZE]; // create buffer for each kernel_size conv        
+                            
+                        // load x for each kernel
                         for(int p = 0; p < KERNEL_SIZE; p++) {
                             int p_idx = p * KERNEL_SIZE;
                             int j_plus_p_IN_idx = (j+p) * in_w;
                             for(int q = 0; q < KERNEL_SIZE; q++) {
-                                w[p_idx+q] = w_sm[oc_W_idx+ic_W_idx+p_idx+q];  // w[p][q] = w_sm[oc][ic][p][q];
                                 if (q>0 && k==0){
                                     x[p_idx+q] = in_sm[ic_IN_idx+j_plus_p_IN_idx+q-1];      // x[p][q] = in_sm[ic][j + p][q - 1];
                                 }
                             }
                         }
                     
-
+                        // Conv calculation
                         for (int p = 0; p < KERNEL_SIZE; p++) {
                             int p_idx = p * KERNEL_SIZE;
                             int j_plus_p_IN_idx = (j+p) * in_w;
@@ -58,26 +67,27 @@ L4:                 for(int ic = 0; ic < in_c; ic++) {
                             }
                         }
                         // sum up the results of one kernel
-                        acc_channel[ic] = 0;
+                        acc_channel[ic][j_idx + k] = 0;
                         for(int p = 0; p < KERNEL_SIZE * KERNEL_SIZE; p++) {
-                            acc_channel[ic] += acc_kernel[p];
+                            acc_channel[ic][j_idx + k] += acc_kernel[p];
                         }
-                    }
-                    // sum up the result of one channel
-                    z[j_idx+k] = 0;
+                    } // for k
+                        
+                } // for j
+            } //for ic
+
+            // sum up the result of one output channel
+            // send the result to out_sm (in DRAM)
+            for(int j = 0; j < out_h; j++) {
+                int j_idx = j * out_w;                
+                for(int k = 0; k < out_w; k++) {
+                    z[j_idx+k] = 0;                    
                     for(int ic = 0; ic < in_c; ic++) {
-                        z[j_idx+k] += acc_channel[ic]; // z[j][k] += acc_channel[ic];
+                        z[j_idx+k] += acc_channel[ic][j_idx+k]; // z[j][k] += acc_channel[ic];                    
                     }
                     // add bias
-                    z[j_idx+k] += b_sm[oc]; // z[j][k] += b_sm[oc];
-                } 
-                    
-            }
-            // send the result to out_sm (in DRAM)
-            for(int j = 0; j < out_w; j++) {
-				int j_idx = j * out_h;
-                for(int k = 0; k < out_h; k++) {
-                    out_sm[oc_OUT_idx+j_idx+k] = z[j_idx+k]; // out_sm[oc][j][k] = z[j][k];
+                    z[j_idx+k]+=b_sm[oc];
+                    out_sm[oc_OUT_idx+j_idx+k] = z[j_idx+k]; // out_sm[oc][j][k] = z[j][k];                
                 }
             }
         }
