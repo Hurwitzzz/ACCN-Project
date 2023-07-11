@@ -39,7 +39,7 @@ IC:			for(int ic = 0; ic < in_c; ic++) {
 				int ic_W_idx = ic * KERNEL_SIZE * KERNEL_SIZE;
 
 
-				// load x for each kernel
+				// load in
 IY:				for(int p = 0; p < KERNEL_SIZE; p++) {
 					int p_idx = p * KERNEL_SIZE;
 					int y_plus_p_IN_idx = (y+p) * in_w;
@@ -52,12 +52,22 @@ X:				for(int x = 0; x < out_w; x++) {
 					float acc_kernel[KERNEL_SIZE * KERNEL_SIZE]; // create buffer for each kernel_size conv
 
 					// Conv calculation
-CY:					for(int p = 0; p < KERNEL_SIZE; p++) {
+C1:					for(int p = 0; p < KERNEL_SIZE; p++) {
 						int p_idx = p * KERNEL_SIZE;
 						int y_plus_p_IN_idx = (y+p) * in_w;
-CX:						for (int q = 0; q < KERNEL_SIZE; q++) {
+C2:						for (int q = 0; q < KERNEL_SIZE - 1; q++) {
 							// reuse the data in BRAM
-							in[p_idx+q] = (q == KERNEL_SIZE - 1) ? IN[ic_IN_idx+y_plus_p_IN_idx+x+q] : in[p_idx+q+1];   // in[p][q] = (q == KERNEL_SIZE - 1) ? IN[ic][y + p][x + q] : in[p][q + 1];
+							in[p_idx+q] = in[p_idx+q+1];   // in[p][q] = (q == KERNEL_SIZE - 1) ? IN[ic][y + p][x + q] : in[p][q + 1];
+						}
+						in[p_idx+KERNEL_SIZE-1] = IN[ic_IN_idx+y_plus_p_IN_idx+x+KERNEL_SIZE-1];   // in[p][q] = (q == KERNEL_SIZE - 1) ? IN[ic][y + p][x + q] : in[p][q + 1];
+					}
+
+					// Conv calculation
+C3:					for(int p = 0; p < KERNEL_SIZE; p++) {
+						int p_idx = p * KERNEL_SIZE;
+						int y_plus_p_IN_idx = (y+p) * in_w;
+C4:						for (int q = 0; q < KERNEL_SIZE; q++) {
+							// reuse the data in BRAM
 							acc_kernel[p_idx+q] = in[p_idx+q] * w[ic_W_idx+p_idx+q]; // in[p][q] * w[p][q];
 						}
 					}
