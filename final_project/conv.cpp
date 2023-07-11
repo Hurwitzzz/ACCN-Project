@@ -30,6 +30,9 @@ OC:	for(int oc = 0; oc < out_c; oc++) {
 Y:		for(int y = 0; y < out_h; y++) {
 			float acc_row[OUT_SIZE]; // One row of output
 			int y_idx = y * out_w;
+			for(int x = 0; x < out_w; x++) {
+				acc_row[x] = 0;
+			}
 
 IC:			for(int ic = 0; ic < in_c; ic++) {
 				int ic_IN_idx = ic * in_w * in_w;
@@ -61,7 +64,6 @@ X:				for(int x = 0; x < out_w; x++) {
 					}
 
 					// sum up the results of one kernel
-					acc_row[x] = 0;
 					for(int i = 0; i < KERNEL_SIZE * KERNEL_SIZE; i++) {
 						acc_row[x] += acc_kernel[i];
 					}
