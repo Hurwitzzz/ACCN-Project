@@ -62,7 +62,7 @@ int compareTensorsRaw(float* a, uint32_t a_size[3], float* ref, uint32_t ref_siz
 	return ret;
 }
 
-// Iterates in oc->y->x->ic->iy->ix order
+// Iterates in oc->y->x->ic->ky->kx order
 void convBasic(float* X, uint32_t X_size[3],
                float* W, uint32_t W_size[4],
                float* B, uint32_t B_size[3],
@@ -79,10 +79,10 @@ void convBasic(float* X, uint32_t X_size[3],
 			for (int x = 0; x < in_w - kernel_w + 1; x++) {
 				float sum = 0;
 				for (int ic = 0; ic < in_c; ic++) {
-					for (int iy = 0; iy < kernel_h; iy++) {
-						for (int ix = 0; ix < kernel_w; ix++) {
-							sum += X[ic*in_h*in_w+(y+iy)*in_w+x+ix] *
-							       W[oc*in_c*kernel_h*kernel_w+ic*kernel_h*kernel_w+iy*kernel_w+ix];
+					for (int ky = 0; ky < kernel_h; ky++) {
+						for (int kx = 0; kx < kernel_w; kx++) {
+							sum += X[ic*in_h*in_w+(y+ky)*in_w+x+kx] *
+							       W[oc*in_c*kernel_h*kernel_w+ic*kernel_h*kernel_w+ky*kernel_w+kx];
 						}
 					}
 				}
@@ -92,7 +92,7 @@ void convBasic(float* X, uint32_t X_size[3],
 	}
 }
 
-// Iterates in oc->ic->y->x->iy->ix order
+// Iterates in oc->ic->y->x->ky->kx order
 void convBasic2(float* X, uint32_t X_size[3],
                float* W, uint32_t W_size[4],
                float* B, uint32_t B_size[3],
@@ -117,10 +117,10 @@ void convBasic2(float* X, uint32_t X_size[3],
 			for (int y = 0; y < out_h; y++) {
 				for (int x = 0; x < out_w; x++) {
 					float sum = 0; // Sum for one input channel for one kernel application/output pixel
-					for (int iy = 0; iy < kernel_h; iy++) {
-						for (int ix = 0; ix < kernel_w; ix++) {
-							sum += X[ic*in_h*in_w+(y+iy)*in_w+x+ix] *
-							       W[oc*in_c*kernel_h*kernel_w+ic*kernel_h*kernel_w+iy*kernel_w+ix];
+					for (int ky = 0; ky < kernel_h; ky++) {
+						for (int kx = 0; kx < kernel_w; kx++) {
+							sum += X[ic*in_h*in_w+(y+ky)*in_w+x+kx] *
+							       W[oc*in_c*kernel_h*kernel_w+ic*kernel_h*kernel_w+ky*kernel_w+kx];
 						}
 					}
 					sums[y*out_w+x] += sum;
@@ -135,7 +135,7 @@ void convBasic2(float* X, uint32_t X_size[3],
 	}
 }
 
-// Iterates in oc->y->ic->x->iy->ix order
+// Iterates in oc->y->ic->x->ky->kx order
 void convBasic3(float* X, uint32_t X_size[3],
                float* W, uint32_t W_size[4],
                float* B, uint32_t B_size[3],
@@ -160,10 +160,10 @@ void convBasic3(float* X, uint32_t X_size[3],
 			for (int ic = 0; ic < in_c; ic++) {
 				for (int x = 0; x < out_w; x++) {
 					float sum = 0; // Sum for one input channel for one kernel application/output pixel
-					for (int iy = 0; iy < kernel_h; iy++) {
-						for (int ix = 0; ix < kernel_w; ix++) {
-							sum += X[ic*in_h*in_w+(y+iy)*in_w+x+ix] *
-							       W[oc*in_c*kernel_h*kernel_w+ic*kernel_h*kernel_w+iy*kernel_w+ix];
+					for (int ky = 0; ky < kernel_h; ky++) {
+						for (int kx = 0; kx < kernel_w; kx++) {
+							sum += X[ic*in_h*in_w+(y+ky)*in_w+x+kx] *
+							       W[oc*in_c*kernel_h*kernel_w+ic*kernel_h*kernel_w+ky*kernel_w+kx];
 						}
 					}
 					sums[x] += sum;
