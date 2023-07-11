@@ -37,6 +37,7 @@ int main(){
 	// One cannot write to the pointer to virtual memory, so cast it to float * first
 	float * virt_x = (float *) sm_x.pointer;
 	float * virt_w = (float *) sm_w.pointer;
+	float * virt_b = (float *) sm_b.pointer;
 	float * virt_z = (float *) sm_z.pointer;
 
 	/* Copy addr over axilite */
@@ -74,6 +75,7 @@ int main(){
 
     	    memcpy(virt_x, X, sizeof(float) * X_size[0]*X_size[1]*X_size[2]);
     	    memcpy(virt_w, W, sizeof(float) * W_size[0]*W_size[1]*W_size[2]*W_size[3]);
+		    memcpy(virt_b, B, sizeof(float) * B_size[2]);
 
     	    /* Start HLS by setting bit */
     	    uint32_t * hls_ctrl = (uint32_t *) hls.buffer;
