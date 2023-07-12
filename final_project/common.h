@@ -242,6 +242,7 @@ FILE * openTestFile() {
     // Try to use absolute path for Vitis HLS
     if(!f) f = fopen("/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/final_project/data/conv_test.dat","rb");
     if(!f) f = fopen("/home/hewei/TUM/ACCN/ACCN-Homework/final_project/data/conv_test.dat", "rb");
+    if(!f) f = fopen("/home/xilinx/final/data/conv_test.dat", "rb");
     if(!f) printf("test.dat not found\n");
 	return f;
 }
