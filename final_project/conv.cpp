@@ -59,6 +59,7 @@ IX:					for(int q = 0; q < KERNEL_SIZE - 1; q++) {
 
 				int xmk = -1;
 X:				for(int x = 0; x < out_w; x++) {
+#pragma HLS pipeline II=3
 #pragma HLS loop_tripcount max=OUT_SIZE
 					float acc_kernel[KERNEL_SIZE * KERNEL_SIZE]; // create buffer for each kernel_size conv
 #pragma HLS array_partition variable=acc_kernel complete
@@ -81,6 +82,7 @@ C3:					for(int p = 0; p < KERNEL_SIZE; p++) {
 						int p_idx = p * KERNEL_SIZE;
 						int y_plus_p_IN_idx = (y+p) * in_w;
 C4:						for (int q = 0; q < KERNEL_SIZE; q++) {
+#pragma HLS pipeline II=1
 							// reuse the data in BRAM
     						int xmk_plus_q_mod_KS = xmk+q;
     						if(xmk_plus_q_mod_KS >= KERNEL_SIZE) xmk_plus_q_mod_KS -= KERNEL_SIZE;
