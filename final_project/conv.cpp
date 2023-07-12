@@ -41,6 +41,7 @@ ZR:			for(int x = 0; x < out_w; x++) {
 
 IC:			for(int ic = 0; ic < in_c; ic++) {
 #pragma HLS loop_tripcount max=IN_CHANNEL
+#pragma HLS pipeline II=3
 				int ic_IN_idx = ic * in_w * in_w;
 				int ic_W_idx = ic * KERNEL_SIZE * KERNEL_SIZE;
 
@@ -59,8 +60,8 @@ IX:					for(int q = 0; q < KERNEL_SIZE - 1; q++) {
 
 				int xmk = -1;
 X:				for(int x = 0; x < out_w; x++) {
-#pragma HLS pipeline II=3
 #pragma HLS loop_tripcount max=OUT_SIZE
+#pragma HLS pipeline II=3
 					float acc_kernel[KERNEL_SIZE * KERNEL_SIZE]; // create buffer for each kernel_size conv
 #pragma HLS array_partition variable=acc_kernel complete
 
@@ -104,6 +105,7 @@ AK:					for(int i = 0; i < KERNEL_SIZE * KERNEL_SIZE; i++) {
 			// add bias and send one row to OUT (in DRAM)
 WO:			for(int x = 0; x < out_w; x++) {
 #pragma HLS loop_tripcount max=OUT_SIZE
+#pragma HLS pipeline II=1
 				OUT[oc_OUT_idx+y_idx+x] = acc_row[x] + B[oc]; // OUT[oc][y][x] = acc_row[x] + B[oc];
 			}
 		} //for y
