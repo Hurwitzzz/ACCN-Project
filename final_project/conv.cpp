@@ -129,5 +129,7 @@ void EntryConv(float IN[IN_CHANNEL*IN_SIZE*IN_SIZE],
     #pragma HLS INTERFACE s_axilite port=B
     #pragma HLS INTERFACE s_axilite port=OUT
 
+    #pragma HLS INTERFACE s_axilite port=in_w,in_h,in_c,out_c
+
     Conv2D_3x3(IN, W, B, in_w, in_h, in_c, out_c, OUT);
 }

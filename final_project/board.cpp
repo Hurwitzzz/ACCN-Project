@@ -45,7 +45,7 @@ int main(){
 	memcpy(hls.buffer + 0x10, &(sm_x.physical_address), sizeof(size_t));
 	memcpy(hls.buffer + 0x1c, &(sm_w.physical_address), sizeof(size_t));
 	memcpy(hls.buffer + 0x28, &(sm_b.physical_address), sizeof(size_t));
-	memcpy(hls.buffer + 0x34, &(sm_z.physical_address), sizeof(size_t));
+	memcpy(hls.buffer + 0x54, &(sm_z.physical_address), sizeof(size_t));
 
     //Tensor X,R,W,B;
     float* X = new float[0];
@@ -72,6 +72,11 @@ int main(){
     		}
     		//Use FPGA for Conv2D_3x3:
 			//        in_sm, w_sm,	b_sm, in_w,      in_h,      in_c,      out_c,     out_sm
+			//Pass in sizes:
+			memcpy(hls.buffer + 0x34, &(in_w), sizeof(int));
+			memcpy(hls.buffer + 0x3c, &(in_h), sizeof(int));
+			memcpy(hls.buffer + 0x44, &(in_c), sizeof(int));
+			memcpy(hls.buffer + 0x4c, &(out_c), sizeof(int));
 
     	    memcpy(virt_x, X, sizeof(float) * X_size[0]*X_size[1]*X_size[2]);
     	    memcpy(virt_w, W, sizeof(float) * W_size[0]*W_size[1]*W_size[2]*W_size[3]);
