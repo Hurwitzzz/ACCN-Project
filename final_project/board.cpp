@@ -18,21 +18,28 @@ int main(){
 	PYNQ_loadBitstream((char * )"conv2d.bit");
 	PYNQ_MMIO_WINDOW led, hls;  // hls is AXILITE interface
 	PYNQ_createMMIOWindow(&led, 0x40010000,8); //in this functino, it uses mmap; the address can be got from vivado; 8 is length
-	PYNQ_createMMIOWindow(&hls, 0x40000000,64); //0x00 to 0x2c is 32+12=44, plus 4bytes, 48 is enough. We give 64. It will allocate the whole page anyway, so it doesn't really matter how big you set this, as long as you don't go over 4kB; This is the MMIOwindow for hls_slave, we can write to here.
+	PYNQ_createMMIOWindow(&hls, 0x40000000,128); //0x00 to 0x2c is 32+12=44, plus 4bytes, 48 is enough. We give 64. It will allocate the whole page anyway, so it doesn't really matter how big you set this, as long as you don't go over 4kB; This is the MMIOwindow for hls_slave, we can write to here.
 
 	/* Alocating shared memory */
 	PYNQ_SHARED_MEMORY sm_x, sm_w, sm_b, sm_z;
-	PYNQ_allocatedSharedMemory(&sm_x, IN_CHANNEL * IN_SIZE * IN_SIZE * sizeof(float), 0);
-	PYNQ_allocatedSharedMemory(&sm_w, OUT_CHANNEL * IN_CHANNEL * KERNEL_SIZE * KERNEL_SIZE * sizeof(float), 0);
-	PYNQ_allocatedSharedMemory(&sm_b, OUT_CHANNEL * sizeof(float), 0);
-	PYNQ_allocatedSharedMemory(&sm_z, OUT_CHANNEL * OUT_SIZE * OUT_SIZE * sizeof(float), 0);
+    printf("a\n");
+	PYNQ_allocatedSharedMemory(&sm_x, IN_CHANNEL * IN_SIZE * IN_SIZE * sizeof(float), 1);
+    printf("b\n");
+	PYNQ_allocatedSharedMemory(&sm_w, OUT_CHANNEL * IN_CHANNEL * KERNEL_SIZE * KERNEL_SIZE * sizeof(float), 1);
+    printf("c\n");
+	PYNQ_allocatedSharedMemory(&sm_b, OUT_CHANNEL * sizeof(float), 1);
+    printf("d\n");
+	PYNQ_allocatedSharedMemory(&sm_z, OUT_CHANNEL * OUT_SIZE * OUT_SIZE * sizeof(float), 1);
+    printf("e\n");
 
+    printf("f\n");
 	/* write to the address */
 	// The structure of var"led" can be got from doc
 	uint32_t * b_led = (uint32_t *) led.buffer;
 	b_led[1] = 0; // the TRI register
 	b_led[0] = 3; // DATA register
 
+    printf("g\n");
 	/* Now can write the input data to the memory address */
 	// One cannot write to the pointer to virtual memory, so cast it to float * first
 	float * virt_x = (float *) sm_x.pointer;
@@ -40,12 +47,17 @@ int main(){
 	float * virt_b = (float *) sm_b.pointer;
 	float * virt_z = (float *) sm_z.pointer;
 
+    printf("h\n");
 	/* Copy addr over axilite */
 	// These can be found in the HLS Summary
 	memcpy(hls.buffer + 0x10, &(sm_x.physical_address), sizeof(size_t));
+    printf("i\n");
 	memcpy(hls.buffer + 0x1c, &(sm_w.physical_address), sizeof(size_t));
+    printf("j\n");
 	memcpy(hls.buffer + 0x28, &(sm_b.physical_address), sizeof(size_t));
+    printf("k\n");
 	memcpy(hls.buffer + 0x54, &(sm_z.physical_address), sizeof(size_t));
+    printf("l\n");
 
     //Tensor X,R,W,B;
     float* X = new float[0];
@@ -65,14 +77,16 @@ int main(){
     	//Z.randomize(-1,1);
     	printf("Test X:[%dx%dx%d] W:[%dx%d] Output channels: %d!\n",X_size[0],X_size[1],X_size[2], W_size[2],W_size[3],R_size[0]);
 
-    		//convBasic(&X,W,&B,&Z);
     	if(W_size[2] == 3 && W_size[3] == 3) {
     		if(X_size[0] > IN_CHANNEL || X_size[1] > IN_SIZE || X_size[2] > IN_SIZE || R_size[0] > OUT_CHANNEL) {
         		printf("Input/Output too big\n"); continue;
     		}
     		//Use FPGA for Conv2D_3x3:
-			//        in_sm, w_sm,	b_sm, in_w,      in_h,      in_c,      out_c,     out_sm
 			//Pass in sizes:
+    		int in_w = X_size[1];
+    		int in_h = X_size[2];
+    		int in_c = X_size[0];
+    		int out_c = R_size[0];
 			memcpy(hls.buffer + 0x34, &(in_w), sizeof(int));
 			memcpy(hls.buffer + 0x3c, &(in_h), sizeof(int));
 			memcpy(hls.buffer + 0x44, &(in_c), sizeof(int));
@@ -89,11 +103,9 @@ int main(){
          
     	    memcpy(Z, virt_z, sizeof(float) * R_size[0]*R_size[1]*R_size[2]);
 
-
-
-
-
-			compareTensorsRaw(Z,R_size,R,R_size,1e-3);
+        	//EntryConv(X,     W,     B,    X_size[1], X_size[2], X_size[0], R_size[0], Z     );
+			//convBasic(X,X_size, W,W_size, B,B_size, Z,R_size);
+    		compareTensorsRaw(Z,R_size,R,R_size,1e-3);
     	} else {
 			printf("Skipped because not 3x3 kernel\n");
     	}
