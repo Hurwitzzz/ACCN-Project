@@ -45,17 +45,17 @@ IC:			for(int ic = 0; ic < in_c; ic++) {
 				int ic_W_idx = ic * KERNEL_SIZE * KERNEL_SIZE;
 
 
-				// load in
+				// load all but one column for in
 IY:				for(int p = 0; p < KERNEL_SIZE; p++) {
 #pragma HLS pipeline II=2
 					int p_idx = p * KERNEL_SIZE;
 					int y_plus_p_IN_idx = (y+p) * in_w;
 IX:					for(int q = 0; q < KERNEL_SIZE - 1; q++) {
-						in[p_idx+q] = IN[ic_IN_idx+y_plus_p_IN_idx+q];	  // in[p][q] = IN[ic][y + p][q - 1];
+#pragma HLS pipeline II=1
+						in[p_idx+q] = IN[ic_IN_idx+y_plus_p_IN_idx+q];	  // in[p][q] = IN[ic][y + p][q];
+						//in[p*KERNEL_SIZE+q] = IN[ic * in_w * in_w + (y+p) * in_w +q];
 					}
 				}
-				// in
-				// 0 1 X
 
 				int xmk = -1;
 X:				for(int x = 0; x < out_w; x++) {
@@ -66,9 +66,9 @@ X:				for(int x = 0; x < out_w; x++) {
 					xmk++;
 					if(xmk >= KERNEL_SIZE) xmk -= KERNEL_SIZE;
 
-					// Load only new parts of in
+					// Replace old column with new column for in
 C1:					for(int p = 0; p < KERNEL_SIZE; p++) {
-#pragma HLS pipeline II=3
+#pragma HLS pipeline II=1
 						int p_idx = p * KERNEL_SIZE;
 						int y_plus_p_IN_idx = (y+p) * in_w;
 						int xmk_plus_KS_minus_1_mod_KS = xmk+KERNEL_SIZE-1;
@@ -88,10 +88,13 @@ C4:						for (int q = 0; q < KERNEL_SIZE; q++) {
 						}
 					}
 
+					float acc = 0;
 					// sum up the results of one kernel
 AK:					for(int i = 0; i < KERNEL_SIZE * KERNEL_SIZE; i++) {
-						acc_row[x] += acc_kernel[i];
+#pragma HLS unroll
+						acc += acc_kernel[i];
 					}
+					acc_row[x] += acc;
 				} // for x
 
 			} // for ic
