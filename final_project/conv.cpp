@@ -3,18 +3,18 @@
 #include <cstdlib>
 
 
-template<int KS>
-void Conv2D(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
-	dt W[OUT_CHANNEL*MAX_IN_CHANNEL*KS*KS],
+template<int KS, int IN_C>
+void Conv2D(dt IN[IN_C*MAX_IN_SIZE*MAX_IN_SIZE],
+	dt W[OUT_CHANNEL*IN_C*KS*KS],
 	dt B[OUT_CHANNEL],
-	int IS, int IN_C, int out_c,
+	int IS, int out_c,
 	dt OUT[OUT_CHANNEL*MAX_OUT_SIZE*MAX_OUT_SIZE])
 {
     int OS = IS-KS+1;
 	/* Store in BRAM */
 	dt in[KS*KS];
 #pragma HLS array_partition variable=in complete
-	dt w[MAX_IN_CHANNEL*KS*KS];
+	dt w[IN_C*KS*KS];
 	dt b[OUT_CHANNEL];
 
 	loadBias: for(int oc = 0; oc < out_c; oc++) {
@@ -30,7 +30,7 @@ void Conv2D(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
 		// load w
 		int oc_W_idx = oc * IN_C * KS * KS;
 		loadKernel: for(int i = 0; i < IN_C * KS * KS; i++) {
-#pragma HLS loop_tripcount max=MAX_IN_CHANNEL
+#pragma HLS loop_tripcount max=IN_C
 //#pragma HLS pipeline II=1
 			w[i] = W[oc_W_idx+i]; // w = W[oc];
 		}
@@ -49,7 +49,7 @@ void Conv2D(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
 			}
 
 			forEachIN_C: for(int ic = 0; ic < IN_C; ic++) {
-#pragma HLS loop_tripcount max=MAX_IN_CHANNEL
+#pragma HLS loop_tripcount max=IN_C
 //#pragma HLS pipeline
 				int ic_IN_idx = ic * IS * IS;
 				int ic_W_idx = ic * KS * KS;
@@ -134,24 +134,27 @@ void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
 
 	int kernel_size = in_h;
 	//Medium net:
+	// ConvLayer(3,96,128,128,7,3),
+	// Block 2
+	// ConvLayer(96,256,64,64,5,2),
+	// Block 3
+	// ConvLayer(256,384,32,32,3,1),
+	// Block 4
+	// ConvLayer(384,384,14,14,3,0),
+	// Block 5
+	// ConvLayer(384,256,12,12,3,0),
     switch(kernel_size) {
-        case 7:
-        	// ConvLayer(3,96,128,128,7,3),
-        	// ReLULayer(),
-        	// PoolLayer(96,64,64),
-            Conv2D<7>(IN, W, B, in_w, in_c, out_c, OUT);
+        case 1:
+            Conv2D<7, 3>(IN, W, B, in_w, out_c, OUT);
         	break;
-		case 5:
-        	// ConvLayer(96,256,64,64,5,2),
-        	// ReLULayer(),
-        	// PoolLayer(256,32,32),
-            Conv2D<5>(IN, W, B, in_w, in_c, out_c, OUT);
+		case 2:
+            Conv2D<5, 96>(IN, W, B, in_w, out_c, OUT);
         	break;
-		case 3:
-        	// ConvLayer(256,384,32,32,3,1),
-        	// ReLULayer(),
-        	// PoolLayer(384,16,16),
-            Conv2D<3>(IN, W, B, in_w, in_c, out_c, OUT);
+        case 3:
+            Conv2D<3, 256>(IN, W, B, in_w, out_c, OUT);
+        	break;
+		case 4:
+            Conv2D<3, 384>(IN, W, B, in_w, out_c, OUT);
         	break;
     }
 
