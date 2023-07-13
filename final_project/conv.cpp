@@ -4,29 +4,26 @@
 
 
 #define IS (OS+KS-1)
-template<int KS, int IN_C, int OS>
+template<int KS, int IN_C, int OS, int out_c>
 void Conv2D(dt IN[IN_C*IS*IS],
-	dt W[OUT_CHANNEL*IN_C*KS*KS],
-	dt B[OUT_CHANNEL],
-	int out_c,
-	dt OUT[OUT_CHANNEL*OS*OS])
+	dt W[out_c*IN_C*KS*KS],
+	dt B[out_c],
+	dt OUT[out_c*OS*OS])
 {
     //int IS = OS+KS-1;
 	/* Store in BRAM */
 	dt in[KS*KS];
 #pragma HLS array_partition variable=in complete
 	dt w[IN_C*KS*KS];
-	dt b[OUT_CHANNEL];
+	dt b[out_c];
 
 	loadBias: for(int oc = 0; oc < out_c; oc++) {
-#pragma HLS loop_tripcount max=OUT_CHANNEL
 #pragma HLS pipeline II=1
 		b[oc] = B[oc];
 	}
 
 	// Perform convolution
 	forEachOC:for(int oc = 0; oc < out_c; oc++) {
-#pragma HLS loop_tripcount max=OUT_CHANNEL
 
 		// load w
 		int oc_W_idx = oc * IN_C * KS * KS;
@@ -111,6 +108,7 @@ void Conv2D(dt IN[IN_C*IS*IS],
 	}
 }
 
+
 void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
 	dt W[OUT_CHANNEL*MAX_IN_CHANNEL*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE],
 	dt B[OUT_CHANNEL],
@@ -142,19 +140,19 @@ void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
 	// ConvLayer(384,256,12,12,3,0),
     switch(kernel_size) {
         case 1:
-            Conv2D<7, 3, 128>(IN, W, B, out_c, OUT);
+            Conv2D<7, 3, 128, 96>(IN, W, B, OUT);
         	break;
 		case 2:
-            Conv2D<5, 96, 64>(IN, W, B, out_c, OUT);
+            Conv2D<5, 96, 64, 256>(IN, W, B, OUT);
         	break;
         case 3:
-            Conv2D<3, 256, 32>(IN, W, B, out_c, OUT);
+            Conv2D<3, 256, 32, 384>(IN, W, B, OUT);
         	break;
 		case 4:
-            Conv2D<3, 384, 14>(IN, W, B, out_c, OUT);
+            Conv2D<3, 384, 14, 384>(IN, W, B, OUT);
             break;
 		case 5:
-            Conv2D<3, 384, 12>(IN, W, B, out_c, OUT);
+            Conv2D<3, 384, 12, 256>(IN, W, B, OUT);
         	break;
     }
 
