@@ -10,6 +10,8 @@ extern "C"{
 #include "pynq_api.h"
 }
 
+#define KERNEL_SIZE 3
+
 int main(){
 	auto f = openTestFile();
 	if(!f) return 1;
@@ -24,10 +26,10 @@ int main(){
 
 	/* Alocating shared memory */
 	PYNQ_SHARED_MEMORY sm_x, sm_w, sm_b, sm_z;
-	PYNQ_allocatedSharedMemory(&sm_x, IN_CHANNEL * IN_SIZE * IN_SIZE * sizeof(float), 1);
+	PYNQ_allocatedSharedMemory(&sm_x, IN_CHANNEL * MAX_IN_SIZE * MAX_IN_SIZE * sizeof(float), 1);
 	PYNQ_allocatedSharedMemory(&sm_w, OUT_CHANNEL * IN_CHANNEL * KERNEL_SIZE * KERNEL_SIZE * sizeof(float), 1);
 	PYNQ_allocatedSharedMemory(&sm_b, OUT_CHANNEL * sizeof(float), 1);
-	PYNQ_allocatedSharedMemory(&sm_z, OUT_CHANNEL * OUT_SIZE * OUT_SIZE * sizeof(float), 1);
+	PYNQ_allocatedSharedMemory(&sm_z, OUT_CHANNEL * MAX_OUT_SIZE * MAX_OUT_SIZE * sizeof(float), 1);
 
 	/* write to the address */
 	// The structure of var"led" can be got from doc
@@ -68,7 +70,7 @@ int main(){
 		printf("Test X:[%dx%dx%d] W:[%dx%d] Output channels: %d!\n",X_size[0],X_size[1],X_size[2], W_size[2],W_size[3],R_size[0]);
 
 		if(W_size[2] == 3 && W_size[3] == 3) {
-			if(X_size[0] > IN_CHANNEL || X_size[1] > IN_SIZE || X_size[2] > IN_SIZE || R_size[0] > OUT_CHANNEL) {
+			if(X_size[0] > IN_CHANNEL || X_size[1] > MAX_IN_SIZE || X_size[2] > MAX_IN_SIZE || R_size[0] > OUT_CHANNEL) {
 				printf("Input/Output too big\n"); continue;
 			}
 			//Use FPGA for Conv2D_3x3:

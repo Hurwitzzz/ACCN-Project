@@ -30,9 +30,8 @@ int main(){
 		printf("Test X:[%dx%dx%d] W:[%dx%d] Output channels: %d!\n",X_size[0],X_size[1],X_size[2],
 				W_size[2],W_size[3],R_size[0]);
 
-		//convBasic(&X,W,&B,&Z);
 		if(W_size[2] == 3 && W_size[3] == 3) {
-			if(X_size[0] > IN_CHANNEL || X_size[1] > IN_SIZE || X_size[2] > IN_SIZE || R_size[0] > OUT_CHANNEL) {
+			if(X_size[0] > MAX_IN_CHANNEL || X_size[1] > MAX_IN_SIZE || X_size[2] > MAX_IN_SIZE || R_size[0] > OUT_CHANNEL) {
 				printf("Input/Output too big\n"); continue;
 			}
 			//Use FPGA for Conv2D_3x3:
