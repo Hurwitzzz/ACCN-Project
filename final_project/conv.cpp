@@ -3,14 +3,15 @@
 #include <cstdlib>
 
 
-template<int KS, int IN_C>
-void Conv2D(dt IN[IN_C*MAX_IN_SIZE*MAX_IN_SIZE],
+#define IS (OS+KS-1)
+template<int KS, int IN_C, int OS>
+void Conv2D(dt IN[IN_C*IS*IS],
 	dt W[OUT_CHANNEL*IN_C*KS*KS],
 	dt B[OUT_CHANNEL],
-	int IS, int out_c,
-	dt OUT[OUT_CHANNEL*MAX_OUT_SIZE*MAX_OUT_SIZE])
+	int out_c,
+	dt OUT[OUT_CHANNEL*OS*OS])
 {
-    int OS = IS-KS+1;
+    //int IS = OS+KS-1;
 	/* Store in BRAM */
 	dt in[KS*KS];
 #pragma HLS array_partition variable=in complete
@@ -37,13 +38,11 @@ void Conv2D(dt IN[IN_C*MAX_IN_SIZE*MAX_IN_SIZE],
 
 		int oc_OUT_idx = oc * OS * OS;
 		forEachY: for(int y = 0; y < OS; y++) {
-#pragma HLS loop_tripcount max=MAX_OUT_SIZE
 //#pragma HLS pipeline II=KS
-			dt acc_row[MAX_OUT_SIZE]; // One row of output
+			dt acc_row[OS]; // One row of output
 //#pragma HLS array_partition variable=acc_row complete
 			int y_idx = y * OS;
 			zeroInitAccRow: for(int x = 0; x < OS; x++) {
-#pragma HLS loop_tripcount max=MAX_OUT_SIZE
 //#pragma HLS pipeline II=1
 				acc_row[x] = 0;
 			}
@@ -68,7 +67,6 @@ void Conv2D(dt IN[IN_C*MAX_IN_SIZE*MAX_IN_SIZE],
 
 				int xmk = 0;
 				forEachX: for(int x = 0; x < OS; x++) {
-#pragma HLS loop_tripcount max=MAX_OUT_SIZE
 #pragma HLS pipeline II=KS
 					dt acc = 0; // create buffer for each kernel_size conv
 
@@ -106,7 +104,6 @@ void Conv2D(dt IN[IN_C*MAX_IN_SIZE*MAX_IN_SIZE],
 
 			// add bias and send one row to OUT (in DRAM)
 			writeRowToOUT: for(int x = 0; x < OS; x++) {
-#pragma HLS loop_tripcount max=MAX_OUT_SIZE
 #pragma HLS pipeline II=1
 				OUT[oc_OUT_idx+y_idx+x] = acc_row[x] + b[oc]; // OUT[oc][y][x] = acc_row[x] + B[oc];
 			}
@@ -145,16 +142,19 @@ void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
 	// ConvLayer(384,256,12,12,3,0),
     switch(kernel_size) {
         case 1:
-            Conv2D<7, 3>(IN, W, B, in_w, out_c, OUT);
+            Conv2D<7, 3, 128>(IN, W, B, out_c, OUT);
         	break;
 		case 2:
-            Conv2D<5, 96>(IN, W, B, in_w, out_c, OUT);
+            Conv2D<5, 96, 64>(IN, W, B, out_c, OUT);
         	break;
         case 3:
-            Conv2D<3, 256>(IN, W, B, in_w, out_c, OUT);
+            Conv2D<3, 256, 32>(IN, W, B, out_c, OUT);
         	break;
 		case 4:
-            Conv2D<3, 384>(IN, W, B, in_w, out_c, OUT);
+            Conv2D<3, 384, 14>(IN, W, B, out_c, OUT);
+            break;
+		case 5:
+            Conv2D<3, 384, 12>(IN, W, B, out_c, OUT);
         	break;
     }
 
