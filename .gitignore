@@ -10,3 +10,7 @@
 /final_project/.vscode/*
 /final_project/VitisPath
 /final_project/test
+/final_project/cnn_board.cpp
+/final_project/utils/*
+
+

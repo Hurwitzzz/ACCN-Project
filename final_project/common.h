@@ -249,3 +249,25 @@ FILE * openTestFile() {
 }
 
 #endif // common_h_INCLUDED
+
+
+
+
+float* pad_IN(float* X, int ic, int is, uint32_t pad) {
+    int new_dim = is + 2 * pad;
+
+    float* X_pad = new float[ic * new_dim * new_dim];
+
+    std::fill_n(X_pad, ic * new_dim * new_dim, 0.0f);
+
+    for(int z = 0; z < ic; z++) {
+        for(int i = 0; i < is; i++) {
+            for(int j = 0; j < is; j++) {
+                
+                X_pad[z * new_dim * new_dim + (i + pad) * new_dim + (j + pad)] = X[z * is * is + i * is + j];
+            }
+        }
+    }
+
+    return X_pad;
+}
