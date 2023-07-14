@@ -108,7 +108,7 @@ void Conv2D(dt IN[IN_C][IS][IS],
 void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
 	dt W[OUT_CHANNEL*MAX_IN_CHANNEL*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE],
 	dt B[OUT_CHANNEL],
-	int in_w, int in_h, int in_c, int out_c,
+	int layer_choose,
 	dt OUT[OUT_CHANNEL*MAX_OUT_SIZE*MAX_OUT_SIZE])
 {
     #pragma HLS INTERFACE m_axi port=IN depth = 10
@@ -121,9 +121,9 @@ void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
     #pragma HLS INTERFACE s_axilite port=B
     #pragma HLS INTERFACE s_axilite port=OUT
 
-    #pragma HLS INTERFACE s_axilite port=in_w,in_h,in_c,out_c
+    #pragma HLS INTERFACE s_axilite port=layer_choose
 
-	int kernel_size = in_h;
+
 	//Medium net:
 	// ConvLayer(3,96,128,128,7,3),
 	// Block 2
@@ -134,7 +134,7 @@ void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
 	// ConvLayer(384,384,14,14,3,0),
 	// Block 5
 	// ConvLayer(384,256,12,12,3,0),
-    switch(kernel_size) {
+    switch(layer_choose) {
         case 1:
             Conv2D<7, 3, 128, 96>(
                 (float (*)[134][134]) IN,

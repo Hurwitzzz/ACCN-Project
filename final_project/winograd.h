@@ -6,8 +6,8 @@ typedef const struct WSTRUCT{
 	const float ** Bt;
 	const float ** At;
 	const int tile_size;
-	const int tile_stride; // = tile_size - kernel_size + 1
-	const int kernel_size; 
+	const int tile_stride;
+	const int kernel_size;
 	const int out_size;
 }WINOGRAD_STRUCT;
 
