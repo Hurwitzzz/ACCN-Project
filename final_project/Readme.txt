@@ -72,6 +72,10 @@ negative slack would be too high.
 7. Full implementation with different datatype
 	We tested synthesizing a design with a different datatype (see conv.h), but curiously
 	found it to not affect the reported latency by a significant factor, so dropped it for now.
+	We did not actually benchmark or test it though, but in principle the implementation
+	should be easily adaptable to other datatypes as we use a C define for our datatype dt
+	which is currently set to float. Should others be implemented one must convert
+	to dt after readBMP and from dt before classifyImage.
 
 	The latency reported on Vitis HLS is a bit weird anyways. It doesn't really match up with
 	the performance we eventually got when running the benchmark on the board.
