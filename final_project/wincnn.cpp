@@ -106,7 +106,7 @@ void convWinograd(dt IN[IN_C][IS][IS], dt W_wino[out_c][IN_C][TS][TS] , dt B[out
         }
 
         for (int y =0; y < num_tiles; y++){
-            dt acc_row[OS][num_tiles * OS];
+            dt acc_row[TS][num_tiles * TS];
             int y_idx = y * num_tiles;
 
             // zero initial acc_roow
@@ -134,23 +134,45 @@ void convWinograd(dt IN[IN_C][IS][IS], dt W_wino[out_c][IN_C][TS][TS] , dt B[out
                     for (int p=0; p<TS; p++){
                         for (int q=0; q<TS; q++){
                             #pragma HLS pipeline II=1
-                            if (k+ (tile_size - k_size +1) * t_row < input_width && 
-                            l+ (tile_size - k_size +1) * t_col < input_width){
-                                in[p][q] = (q >= overlap) ? IN[ic][p][x*TS - overlap*(x-1)] : 0;
+                            if (p+ stride*y < IS && q+stride*x < IS){
+                                in[p][q] = (q >= overlap) ? IN[ic][p][x*TS - overlap*(x-1)] : in[p][q+stride];                            
                             }
-                            
+                            else{
+                                in[p][q] = 0;
                             }
                         }
                     }
                     // convert in to in_wino
-
+                    // TODO: use buffer to accelerate accumulation
+                    for (int i=0; i < TS; i++){
+                        for (int j=0; j < TS; j++){
+                            #pragma HLS pipeline II=1
+                            in_wino[i][j] = 0;
+                            for (int k=0; k < TS; k++){
+                                for (int l=0; l < TS; l++){
+                                    #pragma HLS pipeline II=1
+                                    in_wino[i][j] += wino->Bt[i][k] * in[k][l] * wino->Bt[j][l];
+                                }
+                            }
+                        }
+                    }
                     // multiply in_wino with w_wino, store in acc
-
+                    for (int i=0; i < TS; i++){
+                        for (int j=0; j < TS; j++){
+                            acc[i][j] = in_wino[i][j] * w[ic][i][j];
+                        }
+                    }
                     // acc_row += acc
+                    for (int i=0; i < TS; i++){
+                        for (int j=0; j < TS; j++){
+                            #pragma HLS pipeline II=1
+                            acc_row[i][x*TS + j] += acc[i][j];
+                        }
+                    }
                 }
             }
             // convert acc_row back
-
+            
             // add bias
 
             // store back to OUT
