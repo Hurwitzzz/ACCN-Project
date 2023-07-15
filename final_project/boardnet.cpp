@@ -115,11 +115,14 @@ void allocLayers(std::vector<CNN_layer_struct> &layers)
 			case Layer_Type::Pool:
 				lay.Z = new float[ lay.output_size[0] * lay.output_size[1] * lay.output_size[2] ];
 				break;
-			case Layer_Type::Conv:
+			case Layer_Type::Conv: {
 #ifdef FPGA
-            	PYNQ_allocatedSharedMemory(&lay.sm_z, lay.output_size[0] * lay.output_size[1] * lay.output_size[2] * sizeof(float), 1);
-            	PYNQ_allocatedSharedMemory(&lay.sm_w, lay.output_size[0] * lay.input_channels * lay.kernel_width * lay.kernel_width * sizeof(float), 1);
-            	PYNQ_allocatedSharedMemory(&lay.sm_b, lay.output_size[0] * sizeof(float), 1);
+            	int res = PYNQ_allocatedSharedMemory(&lay.sm_z, lay.output_size[0] * lay.output_size[1] * lay.output_size[2] * sizeof(float), 0);
+				printf("Z res: %d\n", res);
+            	res = PYNQ_allocatedSharedMemory(&lay.sm_w, lay.output_size[0] * lay.input_channels * lay.kernel_width * lay.kernel_width * sizeof(float), 0);
+				printf("W res: %d\n", res);
+            	res = PYNQ_allocatedSharedMemory(&lay.sm_b, lay.output_size[0] * sizeof(float), 0);
+				printf("B res: %d\n", res);
             	lay.Z = (float *) lay.sm_z.pointer;
             	lay.W = (float *) lay.sm_w.pointer;
             	lay.B = (float *) lay.sm_b.pointer;
@@ -129,6 +132,7 @@ void allocLayers(std::vector<CNN_layer_struct> &layers)
 				lay.B = new float[ lay.output_size[0] ];
 #endif
 				break;
+			}
 			case Layer_Type::Linear:
 				insize = layers[i-1].output_size[0] * layers[i-1].output_size[1] * layers[i-1].output_size[2];
 				lay.Z = new float[ 1 * 1 * lay.output_size[2] ];
@@ -556,7 +560,8 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
 #ifdef FPGA
 				// TODO: Alloc lay.Z of previous layer as shared to elide memcpy here
 				PYNQ_SHARED_MEMORY sm_x;
-            	PYNQ_allocatedSharedMemory(&sm_x, padded_size[0] * padded_size[1] * padded_size[2] * sizeof(float), 1);
+            	int res = PYNQ_allocatedSharedMemory(&sm_x, padded_size[0] * padded_size[1] * padded_size[2] * sizeof(float), 1);
+				printf("X res: %d\n", res);
 
 				float * virt_x = (float *) sm_x.pointer;
     			memcpy(virt_x, X, sizeof(float) * padded_size[0]*padded_size[1]*padded_size[2]);
