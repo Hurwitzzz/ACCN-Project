@@ -569,6 +569,22 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
 
                 uint32_t W_size[4] = {lay.output_size[0], lay.input_channels, lay.kernel_width, lay.kernel_width};
                 uint32_t B_size[3] = {1, 1, lay.output_size[0]};
+
+				double W_sum = 0;
+				for(int i = 0; i < W_size[3] * W_size[2] * W_size[1] * W_size[0]; i++) {
+					W_sum += lay.W[i];
+				}
+				printf("Wsum %f\n", W_sum);
+				double B_sum = 0;
+				for(int i = 0; i < B_size[2] * B_size[1] * B_size[0]; i++) {
+					B_sum += lay.B[i];
+				}
+				printf("Bsum %f\n", B_sum);
+				double X_sum = 0;
+				for(int i = 0; i < padded_size[2] * padded_size[1] * padded_size[0]; i++) {
+					X_sum += X[i];
+				}
+				printf("Xsum %f\n", X_sum);
                 //Reference impl:
         		// convBasic(X, padded_size,
         		//           lay.W, W_size,
@@ -577,7 +593,7 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
 #ifdef FPGA
 				// TODO: Alloc lay.Z of previous layer as shared to elide memcpy here
 				PYNQ_SHARED_MEMORY sm_x;
-            	int res = PYNQ_allocatedSharedMemory(&sm_x, padded_size[0] * padded_size[1] * padded_size[2] * sizeof(float), 1);
+            	int res = PYNQ_allocatedSharedMemory(&sm_x, padded_size[0] * padded_size[1] * padded_size[2] * sizeof(float), 0);
 				printf("X res: %d\n", res);
 
 				float * virt_x = (float *) sm_x.pointer;
@@ -589,6 +605,10 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
             	memcpy(hls.buffer + 0x28, &(lay.sm_b.physical_address), sizeof(size_t));
             	memcpy(hls.buffer + 0x54, &(lay.sm_z.physical_address), sizeof(size_t));
     			memcpy(hls.buffer + 0x44, &(block), sizeof(int));
+    			memcpy(hls.buffer + 0x34, &(block), sizeof(int));
+    			memcpy(hls.buffer + 0x3c, &(block), sizeof(int));
+    			memcpy(hls.buffer + 0x44, &(block), sizeof(int));
+    			memcpy(hls.buffer + 0x4c, &(block), sizeof(int));
 
     			/* Start HLS by setting bit */
 				uint32_t * hls_ctrl = (uint32_t *) hls.buffer;
@@ -605,6 +625,11 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
     			//        in_sm, w_sm,	b_sm, in_w,      in_h,      in_c,      out_c,     out_sm
             	EntryConv(X,     lay.W, lay.B,0,		 block,			0, 		   0, 		  lay.Z     );
 #endif
+				double Z_sum = 0;
+				for(int i = 0; i < lay.output_size[2] * lay.output_size[1] * lay.output_size[0]; i++) {
+					Z_sum += lay.Z[i];
+				}
+				printf("Zsum %f\n", Z_sum);
 
         		if(lay.pad > 0) { delete X; }
 				X = lay.Z;
@@ -733,11 +758,6 @@ int main(int argc, char* argv[]) {
 	);
 
 	freeLayers(mediumNet);
-
-	/* Now can write the input data to the memory address */
-	// One cannot write to the pointer to virtual memory, so cast it to float * first
-
-	fclose(f);
 
 #ifdef FPGA
 	PYNQ_closeMMIOWindow( &led);
