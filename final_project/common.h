@@ -17,16 +17,6 @@ double mtock(struct timeval start){
 	return time;
 }
 
-
-// void Tensor::write(FILE *f)
-// {
-// 	uint64_t num_params = size[0]*size[1]*size[2];
-// 	fwrite(&(size[0]),sizeof(size[0]),1,f);
-// 	fwrite(&(size[1]),sizeof(size[1]),1,f);
-// 	fwrite(&(size[2]),sizeof(size[2]),1,f);
-// 	fwrite(data[0][0],sizeof(data[0][0][0]),num_params,f);
-// }
-
 float * padTensor(float * X, uint32_t X_size[3], uint32_t pad)
 {
 	int N = X_size[1] + pad*2;

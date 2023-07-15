@@ -1,4 +1,3 @@
-// Description: header file for conv.c
 #ifndef _CONV_H_
 #define _CONV_H_
 
@@ -15,10 +14,10 @@
 #define OUT_CHANNEL 384
 
 void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
-	dt W[OUT_CHANNEL*MAX_IN_CHANNEL*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE],
-	dt B[OUT_CHANNEL],
-	int in_w, int in_h, int in_c, int out_c,
-	dt OUT[OUT_CHANNEL*MAX_OUT_SIZE*MAX_OUT_SIZE]);
+               dt W[OUT_CHANNEL*MAX_IN_CHANNEL*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE],
+               dt B[OUT_CHANNEL],
+               dt OUT[OUT_CHANNEL*MAX_OUT_SIZE*MAX_OUT_SIZE],
+               int block);
 
 
 #endif

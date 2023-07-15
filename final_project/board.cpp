@@ -21,7 +21,7 @@ int main(){
 	PYNQ_MMIO_WINDOW led, hls;  // hls is AXILITE interface
 	PYNQ_createMMIOWindow(&led, 0x40010000,8); //in this functino, it uses mmap; the address can be got from vivado; 8 is length
 	PYNQ_createMMIOWindow(&hls, 0x40000000,128); //0x00 to 0x2c is 32+12=44, plus 4bytes, 48 is enough. We give 64. It will allocate the whole page anyway, so it doesn't really matter how big you set this, as long as you don't go over 4kB; This is the MMIOwindow for hls_slave, we can write to here.
-	uint32_t * hls_ctrl = (uint32_t *) hls.buffer;
+	volatile uint32_t * hls_ctrl = (uint32_t *) hls.buffer;
 	*hls_ctrl = 0b100;
 
 	/* Alocating shared memory */
@@ -89,6 +89,7 @@ int main(){
 			memcpy(virt_b, B, sizeof(float) * B_size[0] * B_size[1] * B_size[2]);
 
 			/* Start HLS by setting bit */
+			// O3 MAY "OPTIMIZE" OUT THE LOOP CONDITION IF HLS_CTRL IS NOT VOLATILE
 			*hls_ctrl = 0b1;
 			while(!(*hls_ctrl & 0b100)){}; // waiting for the IDLE(the 3rd bit) to 1, then we can print out the result
 
