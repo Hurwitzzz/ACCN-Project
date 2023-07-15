@@ -1,6 +1,22 @@
 #ifndef common_h_INCLUDED
 #define common_h_INCLUDED
 
+#include <sys/time.h>
+
+struct timeval mtick(){
+	struct timeval start;
+	gettimeofday(&start,0);
+	return start;
+}
+
+double mtock(struct timeval start){
+	struct timeval stop;
+	gettimeofday(&stop,0);
+	double time = (stop.tv_sec - start.tv_sec)*1000 + 
+		(stop.tv_usec - start.tv_usec)/(1000.f);
+	return time;
+}
+
 
 // void Tensor::write(FILE *f)
 // {
@@ -11,24 +27,25 @@
 // 	fwrite(data[0][0],sizeof(data[0][0][0]),num_params,f);
 // }
 
-// Tensor * padTensor(Tensor * X , uint32_t pad)
-// {
-// 	int N = X->size[1] +  pad *2;
-// 	int K = X->size[2] +  pad *2;
-// 	Tensor * Xpad = new Tensor(X->size[0], N,K);
-// 	for(int z = 0; z < X->size[0]; z++){
-// 		float ** xpad = (*Xpad)[z];
-// 		float ** x = (*X)[z];
-// 		for(int i = 0; i < N ;i++){
-// 			for(int j = 0; j < K; j++){
-// 				if((i >= pad) && (i < (N-pad)) &&
-// 							(j >=  pad) && (j <  (K- pad)))
-// 					xpad[i][j] = x[i-pad][j-pad];
-// 			}
-// 		}
-// 	}
-// 	return Xpad;
-// }
+float * padTensor(float * X, uint32_t X_size[3], uint32_t pad)
+{
+	int N = X_size[1] + pad*2;
+	int K = X_size[2] + pad*2;
+	float * Xpad = new float[X_size[0] * N * K];
+	for(int c = 0; c < X_size[0]; c++){
+		for(int i = 0; i < N ;i++){
+			for(int j = 0; j < K; j++){
+				if((i >= pad) && (i < (N-pad)) &&
+					(j >=  pad) && (j <  (K- pad))) {
+					Xpad[c*N*K + i*K + j] = X[c*X_size[1]*X_size[2] + (i-pad)*X_size[2] + j-pad];
+				} else {
+    				Xpad[c*N*K + i*K + j] = 0;
+				}
+			}
+		}
+	}
+	return Xpad;
+}
 
 static float Fabs(float a)
 {
@@ -249,25 +266,3 @@ FILE * openTestFile() {
 }
 
 #endif // common_h_INCLUDED
-
-
-
-
-float* pad_IN(float* X, int ic, int is, uint32_t pad) {
-    int new_dim = is + 2 * pad;
-
-    float* X_pad = new float[ic * new_dim * new_dim];
-
-    std::fill_n(X_pad, ic * new_dim * new_dim, 0.0f);
-
-    for(int z = 0; z < ic; z++) {
-        for(int i = 0; i < is; i++) {
-            for(int j = 0; j < is; j++) {
-                
-                X_pad[z * new_dim * new_dim + (i + pad) * new_dim + (j + pad)] = X[z * is * is + i * is + j];
-            }
-        }
-    }
-
-    return X_pad;
-}

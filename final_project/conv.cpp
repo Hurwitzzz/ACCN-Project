@@ -108,7 +108,7 @@ void Conv2D(dt IN[IN_C][IS][IS],
 void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
 	dt W[OUT_CHANNEL*MAX_IN_CHANNEL*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE],
 	dt B[OUT_CHANNEL],
-	int layer_choose,
+	int in_w, int in_h, int in_c, int out_c,
 	dt OUT[OUT_CHANNEL*MAX_OUT_SIZE*MAX_OUT_SIZE])
 {
     #pragma HLS INTERFACE m_axi port=IN depth = 10
@@ -121,10 +121,11 @@ void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
     #pragma HLS INTERFACE s_axilite port=B
     #pragma HLS INTERFACE s_axilite port=OUT
 
-    #pragma HLS INTERFACE s_axilite port=layer_choose
+    #pragma HLS INTERFACE s_axilite port=in_w,in_h,in_c,out_c
 
-
+	int block = in_h;
 	//Medium net:
+	// Block 1
 	// ConvLayer(3,96,128,128,7,3),
 	// Block 2
 	// ConvLayer(96,256,64,64,5,2),
@@ -134,8 +135,9 @@ void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
 	// ConvLayer(384,384,14,14,3,0),
 	// Block 5
 	// ConvLayer(384,256,12,12,3,0),
-    switch(layer_choose) {
+    switch(block) {
         case 1:
+            printf("HA 1\n");
             Conv2D<7, 3, 128, 96>(
                 (float (*)[134][134]) IN,
                 (float (*)[3][7][7]) W,
@@ -143,6 +145,7 @@ void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
                 (float (*)[128][128]) OUT);
         	break;
 		case 2:
+            printf("HA 2\n");
             Conv2D<5, 96, 64, 256>(
                 (float (*)[68][68]) IN,
                 (float (*)[96][5][5]) W,
@@ -150,6 +153,7 @@ void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
                 (float (*)[64][64]) OUT);
         	break;
         case 3:
+            printf("HA 3\n");
             Conv2D<3, 256, 32, 384>(
                 (float (*)[34][34]) IN,
                 (float (*)[256][3][3]) W,
@@ -157,6 +161,7 @@ void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
                 (float (*)[32][32]) OUT);
         	break;
 		case 4:
+            printf("HA 4\n");
             Conv2D<3, 384, 14, 384>(
                 (float (*)[16][16]) IN,
                 (float (*)[384][3][3]) W,
@@ -164,6 +169,7 @@ void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
                 (float (*)[14][14]) OUT);
             break;
 		case 5:
+            printf("HA 5\n");
             Conv2D<3, 384, 12, 256>(
                 (float (*)[14][14]) IN,
                 (float (*)[384][3][3]) W,
