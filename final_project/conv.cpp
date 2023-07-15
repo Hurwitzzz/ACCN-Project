@@ -157,38 +157,38 @@ void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
     switch(block) {
         case 1:
             Conv2D<7, 3, 128, 96, true, true, 64>(
-                (float (*)[134][134]) IN,
-                (float (*)[3][7][7]) W,
+                (dt (*)[134][134]) IN,
+                (dt (*)[3][7][7]) W,
                 B,
-                (float (*)[128][64]) OUT);
+                (dt (*)[128][64]) OUT);
         	break;
 		case 2:
             Conv2D<5, 96, 64, 256, true, true, 32>(
-                (float (*)[68][68]) IN,
-                (float (*)[96][5][5]) W,
+                (dt (*)[68][68]) IN,
+                (dt (*)[96][5][5]) W,
                 B,
-                (float (*)[64][32]) OUT);
+                (dt (*)[64][32]) OUT);
         	break;
         case 3:
             Conv2D<3, 256, 32, 384, true, true, 16>(
-                (float (*)[34][34]) IN,
-                (float (*)[256][3][3]) W,
+                (dt (*)[34][34]) IN,
+                (dt (*)[256][3][3]) W,
                 B,
-                (float (*)[32][16]) OUT);
+                (dt (*)[32][16]) OUT);
         	break;
 		case 4:
             Conv2D<3, 384, 14, 384, true, false, 14>(
-                (float (*)[16][16]) IN,
-                (float (*)[384][3][3]) W,
+                (dt (*)[16][16]) IN,
+                (dt (*)[384][3][3]) W,
                 B,
-                (float (*)[14][14]) OUT);
+                (dt (*)[14][14]) OUT);
             break;
 		case 5:
             Conv2D<3, 384, 12, 256, true, true, 6>(
-                (float (*)[14][14]) IN,
-                (float (*)[384][3][3]) W,
+                (dt (*)[14][14]) IN,
+                (dt (*)[384][3][3]) W,
                 B,
-                (float (*)[12][6]) OUT);
+                (dt (*)[12][6]) OUT);
         	break;
     }
 

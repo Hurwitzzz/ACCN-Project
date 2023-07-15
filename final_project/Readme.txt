@@ -69,13 +69,12 @@ negative slack would be too high.
 
 6. Manages to inference classification on FPGA with MediumNet (without overlapping)
 
-(not done yet) 7. Full implementation with different datatype
+7. Full implementation with different datatype
+	We tested synthesizing a design with a different datatype (see conv.h), but curiously
+	found it to not affect the reported latency by a significant factor, so dropped it for now.
 
-
-
-
-
-
+	The latency reported on Vitis HLS is a bit weird anyways. It doesn't really match up with
+	the performance we eventually got when running the benchmark on the board.
 
 
 -> How do we interface between CPU and FPGA:
