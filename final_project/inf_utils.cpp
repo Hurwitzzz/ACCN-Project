@@ -1,6 +1,5 @@
 #include "inf_utils.h"
-
-
+#include <cstdint>
 
 int classImage(float* Z)
 {
@@ -69,7 +68,7 @@ float * readBMP(const char * infile)
 		printf("ERROR fseek failed!\n");
 		return NULL;
 	}
-	float * X = new float[3 * 128 * 128];
+	float * X = new float[3 * 128 * 128]();
 	for(int i = 127 - (128 - height)/2; i > ((128 - height)/2 + height%2); 
 			i--){
 		for(int j= (128 - width)/2; j< 128 - ((128 - width)/2 + width%2); j++){

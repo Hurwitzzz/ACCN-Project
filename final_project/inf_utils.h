@@ -1,7 +1,6 @@
 #ifndef INF_UTILS
 #define INF_UTILS 0
 
-#include "tensor.h"
 #include <cstdio>
 #include <algorithm>
 
