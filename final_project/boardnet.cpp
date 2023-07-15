@@ -6,7 +6,9 @@
 #include "conv.h"
 #include "common.h"
 
-//#define FPGA
+// uncomment to use the cpu reference implementation, but comment #define FPGA
+//#define CPURef
+#define FPGA
 
 #ifdef FPGA
 extern "C"{
@@ -633,11 +635,6 @@ dt * inference(std::vector<CNN_layer_struct> &layers, dt * input, double runtime
                 uint32_t W_size[4] = {lay.output_size[0], lay.input_channels, lay.kernel_width, lay.kernel_width};
                 uint32_t B_size[3] = {1, 1, lay.output_size[0]};
 
-                //Reference impl (does not do Relu and maxPool)
-        		// convBasic(X, padded_size,
-        		//           lay.W, W_size,
-        		//           lay.B, B_size,
-        		//           lay.Z, lay.output_size);
 #ifdef FPGA
 				// TODO: Alloc lay.Z of previous layer as shared to elide memcpy here
 				PYNQ_SHARED_MEMORY sm_x;
@@ -664,10 +661,18 @@ dt * inference(std::vector<CNN_layer_struct> &layers, dt * input, double runtime
 				PYNQ_freeSharedMemory(&sm_x);
 #else
             	EntryConv(X, lay.W, lay.B, lay.Z, block);
+#ifdef CPURef
+                //Reference impl (does not do Relu and maxPool)
+        		convBasic(X, padded_size,
+        		          lay.W, W_size,
+        		          lay.B, B_size,
+        		          lay.Z, lay.output_size);
+#endif
 #endif
         		if(lay.pad > 0) { delete X; }
 				X = lay.Z;
 
+#ifndef CPURef
 				if(layers[i+1].type == Layer_Type::ReLU) {
     				i++; // Skip next ReLU layer already done on FPGA
 					if(layers[i+1].type == Layer_Type::Pool) {
@@ -678,7 +683,7 @@ dt * inference(std::vector<CNN_layer_struct> &layers, dt * input, double runtime
 				} else {
     				printf("Expected ReLU to come after conv layer.\n");
 				}
-
+#endif
 				// Include ReLU and Pool in runtime
 				runtime[3] += mtock(start);
 				block++;
