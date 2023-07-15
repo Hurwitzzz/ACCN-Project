@@ -1,9 +1,10 @@
 #ifndef _CONV_H_
 #define _CONV_H_
 
-#include "ap_fixed.h"
+//Uncomment the next two lines if enabling fixed point
+// #include "ap_fixed.h"
+// typedef ap_fixed<16,9> fixed;
 
-typedef ap_fixed<16,9> fixed;
 #define dt float
 
 #define MAX_KERNEL_SIZE 3

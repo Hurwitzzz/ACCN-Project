@@ -70,14 +70,13 @@ negative slack would be too high.
 6. Manages to inference classification on FPGA with MediumNet (without overlapping)
 
 7. Full implementation with different datatype
-	We tested synthesizing a design with a different datatype, a 16bit fixed point number,
-	(see conv.h), but did not not actually benchmark or test it though, but in principle the implementation
-	should be easily adaptable to other datatypes as we use a C define for our datatype dt
-	which is currently set to float.
-	One can experiment by setting it to different ap_fixed fixed point types, but currently
-	the Softmax implementation isn't adapted to fixed points properly so will exceed
-	the values representable by fixed point and result in a crash.
-	There is a way to fix softmax by exploiting the laws of exp.
+	One can experiment by setting dt to different ap_fixed fixed point types in conv.h.
+	At 16 bits (<16, 9>) the results become very inaccurate. However with higher sizes
+	and a different fixed point "location" parameter, one can get a good tradeoff between
+	performance and accuracy.
+	To enable the use of fixed point datatypes we had to implement a trick in the softmax
+	layer where we subtract the maximum value of the input from all inputs to exp(), in
+	order to keep the numbers from getting too large.
 
 
 

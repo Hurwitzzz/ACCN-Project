@@ -527,6 +527,32 @@ void ReLUInplace(dt * X, int input_size)
     }
 }
 
+//Softmax that avoids large values by subtracting the max
+//from all exp inputs
+void softmax1d(dt * out, dt * in, int len) {
+    double max_val = in[0];
+    for (int i = 1; i < len; i++) {
+        if (in[i] > max_val) {
+            max_val = in[i];
+        }
+    }
+    double exp_values[len];
+    for (int i = 0; i < len; i++) {
+        exp_values[i] = std::exp((double) in[i] - max_val);
+    }
+    
+    // Sum up all the exponential values
+    double sum_exp = 0.0;
+    for (int i = 0; i < len; i++) {
+        sum_exp += exp_values[i];
+    }
+    
+    // Divide each exponential value by the sum
+    for (int i = 0; i < len; i++) {
+        out[i] = exp_values[i] / sum_exp;
+    }
+}
+
 /*
  * Applies the Softmax activation function z = exp(x_i)/sum(exp(x_j))
  * This is a stable Softmax implementation
@@ -542,14 +568,15 @@ void Softmax(dt * X, dt * Z, uint32_t size[3]) // Same in as out size
 	int wy = size[2];
 	for (int chan = 0; chan < num_chan; chan++) {
 		for (int x = 0; x < wx; x++) {
-    		dt sum = 0;
-			for (int y = 0; y < wy; y++) {
-				sum += (dt) exp((float)X[chan*size[1]*size[2] + x*size[2] +y]);
-			}
-			for (int y = 0; y < wy; y++) {
-    			dt max = (dt) exp((float)X[chan*size[1]*size[2] + x*size[2] +y]) / sum;
-				Z[chan*size[1]*size[2] + x*size[2] +y] = max;
-			}
+			softmax1d(&Z[chan*size[1]*size[2]], &X[chan*size[1]*size[2]], wy);
+			// dt sum = 0;
+			// for (int y = 0; y < wy; y++) {
+			// 	sum += (dt) exp((float)X[chan*size[1]*size[2] + x*size[2] +y]);
+			// }
+			// for (int y = 0; y < wy; y++) {
+			//	dt max = (dt) exp((float)X[chan*size[1]*size[2] + x*size[2] +y]) / sum;
+			// 	Z[chan*size[1]*size[2] + x*size[2] +y] = max;
+			// }
 		}
 	}
 }
