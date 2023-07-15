@@ -6,7 +6,7 @@
 #include "conv.h"
 #include "common.h"
 
-#define FPGA
+//#define FPGA
 
 #ifdef FPGA
 extern "C"{
@@ -18,7 +18,9 @@ extern "C"{
 #include <vector>
 #include <cmath>
 
-
+//Hack to check size of dt at compiletime
+// char checker(int);
+// char checkSizeOfInt[sizeof(dt)]={checker(&checkSizeOfInt)};
 
 enum struct Layer_Type : uint32_t {Linear = 0,Pool = 1 ,ReLU = 2,Conv = 3,Softmax = 4};
 enum Optimization {None = 0, FFT = 1, Wino = 2, Auto = 3};
@@ -520,7 +522,8 @@ void ReLUInplace(dt * X, int input_size)
 	// printf("%d %d %d\n", X->size[0], X->size[1], X->size[2]);
     for (uint32_t i=0; i<input_size; i++)
     {
-        X[i] = std::max(0.0f, X[i]);
+        if(X[i] < 0)
+	        X[i] = 0;
     }
 }
 
@@ -541,10 +544,10 @@ void Softmax(dt * X, dt * Z, uint32_t size[3]) // Same in as out size
 		for (int x = 0; x < wx; x++) {
     		dt sum = 0;
 			for (int y = 0; y < wy; y++) {
-				sum += exp(X[chan*size[1]*size[2] + x*size[2] +y]);
+				sum += (dt) exp((float)X[chan*size[1]*size[2] + x*size[2] +y]);
 			}
 			for (int y = 0; y < wy; y++) {
-    			dt max = exp(X[chan*size[1]*size[2] + x*size[2] +y]) / sum;
+    			dt max = (dt) exp((float)X[chan*size[1]*size[2] + x*size[2] +y]) / sum;
 				Z[chan*size[1]*size[2] + x*size[2] +y] = max;
 			}
 		}
@@ -676,6 +679,22 @@ dt * inference(std::vector<CNN_layer_struct> &layers, dt * input, double runtime
 
 #include "inf_utils.h"
 
+dt * convertToDt(float * in, int len) {
+	dt * out = new dt[len];
+	for(int i = 0; i < len; i++) {
+    	out[i] = in[i];
+	}
+	return out;
+}
+
+float * convertFromDt(dt * in, int len) {
+	float * out = new float[len];
+	for(int i = 0; i < len; i++) {
+    	out[i] = in[i];
+	}
+	return out;
+}
+
 void benchNet(std::vector<CNN_layer_struct> &layers,
         const char * images[],
 		const int ref[], int N_in
@@ -695,7 +714,13 @@ void benchNet(std::vector<CNN_layer_struct> &layers,
 	for(int i =0; i < N; i++){
 		printf("%s\n",images[i]);
     	//TODO: Convert to dt from float
-		X[i] = readBMP(images[i]);
+#if dt == fixed
+        	float * temp = readBMP(images[i]);
+    		X[i] = convertToDt(temp, 3*128*128);
+    		delete [] temp;
+#else
+    		X[i] = readBMP(images[i]);
+#endif
 	}
 	double runtime[5] = {0};
 	double total_time = 0;
@@ -709,7 +734,13 @@ void benchNet(std::vector<CNN_layer_struct> &layers,
 		);
 		total_time += mtock(start);
     	//TODO: Convert from dt to float
+#if dt == fixed
+		float * temp = convertFromDt(Z, 100);
+		pred[i] = classImage(temp);
+		delete [] temp;
+#else
 		pred[i] = classImage(Z);
+#endif
 		printf("Actual Class: %s\n",classes_img100[ref[i]]);
 	}
 	printf("Total Time [ms]: %lf\n",total_time);

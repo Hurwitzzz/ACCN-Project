@@ -8,5 +8,5 @@ board: board.cpp
 	g++ $^ -o $@ -g -O3 -lpynq -lcma -lpthread
 
 boardnet: boardnet.cpp conv.cpp inf_utils.cpp
-	g++ $^ -o $@ -g -O3 #-lpynq -lcma -lpthread
+	g++ $^ -o $@ -g -O3 -I${INC} #-lpynq -lcma -lpthread
 

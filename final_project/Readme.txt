@@ -70,15 +70,15 @@ negative slack would be too high.
 6. Manages to inference classification on FPGA with MediumNet (without overlapping)
 
 7. Full implementation with different datatype
-	We tested synthesizing a design with a different datatype (see conv.h), but curiously
-	found it to not affect the reported latency by a significant factor, so dropped it for now.
-	We did not actually benchmark or test it though, but in principle the implementation
+	We tested synthesizing a design with a different datatype, a 16bit fixed point number,
+	(see conv.h), but did not not actually benchmark or test it though, but in principle the implementation
 	should be easily adaptable to other datatypes as we use a C define for our datatype dt
-	which is currently set to float. Should others be implemented one must convert
-	to dt after readBMP and from dt before classifyImage.
+	which is currently set to float.
+	One can experiment by setting it to different ap_fixed fixed point types, but currently
+	the Softmax implementation isn't adapted to fixed points properly so will exceed
+	the values representable by fixed point and result in a crash.
+	There is a way to fix softmax by exploiting the laws of exp.
 
-	The latency reported on Vitis HLS is a bit weird anyways. It doesn't really match up with
-	the performance we eventually got when running the benchmark on the board.
 
 
 -> How do we interface between CPU and FPGA:
