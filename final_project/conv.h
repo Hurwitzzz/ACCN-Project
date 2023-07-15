@@ -3,7 +3,7 @@
 
 #include "ap_fixed.h"
 
-typedef ap_fixed<32,16> fixed;
+typedef ap_fixed<16,9> fixed;
 #define dt float
 
 #define MAX_KERNEL_SIZE 3
