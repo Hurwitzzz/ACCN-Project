@@ -2,13 +2,14 @@
 #include <stdio.h>
 #include <cstdlib>
 
-
 #define IS (OS+KS-1)
-template<int KS, int IN_C, int OS, int out_c, bool relu, bool poolX2>
+//OSX is the half of OS when poolX2 is true, otherwise the same
+//OSX is an extra generic param since OUT is dependent on it
+template<int KS, int IN_C, int OS, int out_c, bool relu, bool poolX2, int OSX>
 void Conv2D(dt IN[IN_C][IS][IS],
 	dt W[out_c][IN_C][KS][KS],
 	dt B[out_c],
-	dt OUT[out_c][OS][OS])
+	dt OUT[out_c][OS][OSX])
 {
 	// Buffer KSxKS part of input image and reuse KS-1 columns in it per output pixel
 	// using "modulo indexing", because then we don't need to shift around the KS-1 columns
@@ -98,8 +99,8 @@ void Conv2D(dt IN[IN_C][IS][IS],
 			// Only iterate until OS / 2 if pooling on x
 			// Without pooling or relu:
 			//	OUT[oc][y][x] = acc_row[x] + b[oc];
-			if constexpr(0) {
-				writeRowToOUTPool: for(int x = 0; x < OS / 2; x++) {
+			if constexpr(poolX2) {
+				writeRowToOUTPool: for(int x = 0; x < OSX; x++) {
 #pragma HLS pipeline II=1
 					// Vitis HLS doesn't support if constexpr(relu)	but for mediumnet there's always a relu and pooling layer following anyways
 					dt sum = acc_row[x * 2] + b[oc];
@@ -119,16 +120,6 @@ void Conv2D(dt IN[IN_C][IS][IS],
 					OUT[oc][y][x] = sum;
 				}
 			}
-			// if constexpr(poolX2) {
-
-   //      		for (int x = 0; x < OS; x += 2) {
-   //      			float max = OUT[oc][y][x];
-   //      			float second = OUT[oc][y][x+1];
-   //      			if(second > max) max = second;
-   //      			OUT[oc][y][x / 2] = max;
-   //      		}
-
-			// }
 		} //for y
 	}
 }
@@ -165,39 +156,39 @@ void EntryConv(dt IN[MAX_IN_CHANNEL*MAX_IN_SIZE*MAX_IN_SIZE],
 	// ConvLayer(384,256,12,12,3,0), Relu, Pool
     switch(block) {
         case 1:
-            Conv2D<7, 3, 128, 96, true, true>(
+            Conv2D<7, 3, 128, 96, true, true, 64>(
                 (float (*)[134][134]) IN,
                 (float (*)[3][7][7]) W,
                 B,
-                (float (*)[128][128]) OUT);
+                (float (*)[128][64]) OUT);
         	break;
 		case 2:
-            Conv2D<5, 96, 64, 256, true, true>(
+            Conv2D<5, 96, 64, 256, true, true, 32>(
                 (float (*)[68][68]) IN,
                 (float (*)[96][5][5]) W,
                 B,
-                (float (*)[64][64]) OUT);
+                (float (*)[64][32]) OUT);
         	break;
         case 3:
-            Conv2D<3, 256, 32, 384, true, true>(
+            Conv2D<3, 256, 32, 384, true, true, 16>(
                 (float (*)[34][34]) IN,
                 (float (*)[256][3][3]) W,
                 B,
-                (float (*)[32][32]) OUT);
+                (float (*)[32][16]) OUT);
         	break;
 		case 4:
-            Conv2D<3, 384, 14, 384, true, false>(
+            Conv2D<3, 384, 14, 384, true, false, 14>(
                 (float (*)[16][16]) IN,
                 (float (*)[384][3][3]) W,
                 B,
                 (float (*)[14][14]) OUT);
             break;
 		case 5:
-            Conv2D<3, 384, 12, 256, true, true>(
+            Conv2D<3, 384, 12, 256, true, true, 6>(
                 (float (*)[14][14]) IN,
                 (float (*)[384][3][3]) W,
                 B,
-                (float (*)[12][12]) OUT);
+                (float (*)[12][6]) OUT);
         	break;
     }
 

@@ -121,8 +121,8 @@ void allocLayers(std::vector<CNN_layer_struct> &layers)
 			case Layer_Type::Conv: {
 #ifdef FPGA
 				if(!PYNQ_allocatedSharedMemory(&lay.sm_z, lay.output_size[0] * lay.output_size[1] * lay.output_size[2] * sizeof(float), 0)) printf("Shared alloc Z failed.\n");
-				if(!PYNQ_allocatedSharedMemory(&lay.sm_w, lay.output_size[0] * lay.input_channels * lay.kernel_width * lay.kernel_width * sizeof(float), 0) printf("Shared alloc W failed.\n");
-				if(!PYNQ_allocatedSharedMemory(&lay.sm_b, lay.output_size[0] * sizeof(float), 0) printf("Shared alloc B failed.\n");
+				if(!PYNQ_allocatedSharedMemory(&lay.sm_w, lay.output_size[0] * lay.input_channels * lay.kernel_width * lay.kernel_width * sizeof(float), 0)) printf("Shared alloc W failed.\n");
+				if(!PYNQ_allocatedSharedMemory(&lay.sm_b, lay.output_size[0] * sizeof(float), 0)) printf("Shared alloc B failed.\n");
             	lay.Z = (float *) lay.sm_z.pointer;
             	lay.W = (float *) lay.sm_w.pointer;
             	lay.B = (float *) lay.sm_b.pointer;
@@ -640,16 +640,9 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
 				if(layers[i+1].type == Layer_Type::ReLU) {
     				i++; // Skip next ReLU layer already done on FPGA
 					if(layers[i+1].type == Layer_Type::Pool) {
-						i++; // Skip Pool layer too
-						// Horizontal max pooling was done on the FPGA so only do vertical max pooling here
+						i++; // Horizontal max pooling was done on the FPGA so only do vertical max pooling here
 						uint32_t in_size[3] = {lay.output_size[0], lay.output_size[1], lay.output_size[2] / 2};
-						// printf("A %d %d %d\n",in_size[0],in_size[1],in_size[2]);
-						// printf("A %d %d %d\n",layers[i].output_size[0],layers[i].output_size[1],layers[i].output_size[2]);
-						maxPoolX(X, lay.output_size, lay.Z, in_size);
 						maxPoolY(X, in_size, lay.Z, layers[i].output_size);
-						//maxPool(X, lay.output_size, lay.Z, layers[i].output_size);
-					} else {
-    					printf("block: %d\n", block);
 					}
 				} else {
     				printf("Expected ReLU to come after conv layer.\n");
