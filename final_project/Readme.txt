@@ -37,7 +37,10 @@ Run with FPGA:
     Softmax Layer: 0.198000 
     --------------------
     Accuracy: 1 of 1 images (1.000000 % )!
-Unfortunately we are still slower with the FPGA.
+Unfortunately we are still slower with the FPGA. This may be due to the 100Mhz clock count.
+It could be potentially increased, but would need some refactoring to ease HLS into
+splitting the loop over x, or perhaps splitting the loop manually, as currently the
+negative slack would be too high.
 
 3. Reuse data:
 	a. For each kernel shift, we reuse the kernel_size * (kernel_size-1). 
