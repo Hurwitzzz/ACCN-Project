@@ -702,6 +702,7 @@ int main(int argc, char* argv[]) {
 
 	auto f = fopen("/home/xilinx/final/weights/mediumnet_weights.dat", "rb");
 	if(!f) f = fopen("weights/mediumnet_weights.dat", "rb");
+	if(!f) f = fopen("/home/xilinx/final_project/weights/mediumnet_weights.dat", "rb");
 	if(!f) {
 		printf("Please adapt the absolute path to the weights in boardnet.cpp:main\n");
     	return 1;
