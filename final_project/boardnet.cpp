@@ -6,15 +6,18 @@
 #include "conv.h"
 #include "common.h"
 
+//#define FPGA
+
+#ifdef FPGA
 extern "C"{
 #include "pynq_api.h"
 }
+#endif
 
 #include "stdint.h"
 #include <vector>
 #include <cmath>
 
-#define FPGA
 
 
 enum struct Layer_Type : uint32_t {Linear = 0,Pool = 1 ,ReLU = 2,Conv = 3,Softmax = 4};
@@ -126,7 +129,7 @@ void allocLayers(std::vector<CNN_layer_struct> &layers)
             	lay.Z = (float *) lay.sm_z.pointer;
             	lay.W = (float *) lay.sm_w.pointer;
             	lay.B = (float *) lay.sm_b.pointer;
-#elif
+#else
 				lay.Z = new float[ lay.output_size[0] * lay.output_size[1] * lay.output_size[2] ];
 				lay.W = new float[ lay.output_size[0] * lay.input_channels * lay.kernel_width * lay.kernel_width ];
 				lay.B = new float[ lay.output_size[0] ];
@@ -383,8 +386,8 @@ int readMediumNet(FILE * f,	std::vector<CNN_layer_struct> &layers) {
  */
 void maxPool(float * X, uint32_t X_size[3], float * Z, uint32_t Z_size[3])
 {
-	printf("%d %d %d\n", X_size[0], X_size[1], X_size[2]);
-	printf("%d %d %d\n", Z_size[0], Z_size[1], Z_size[2]);
+	// printf("%d %d %d\n", X_size[0], X_size[1], X_size[2]);
+	// printf("%d %d %d\n", Z_size[0], Z_size[1], Z_size[2]);
 	int num_chan = X_size[0];
 	int wx = X_size[1];
 	int wy = X_size[2];
@@ -506,7 +509,11 @@ void Softmax(float * X, float * Z, uint32_t size[3]) // Same in as out size
 }
 
 
-float * inference(std::vector<CNN_layer_struct> &layers, float * input, double runtime[5], PYNQ_MMIO_WINDOW &hls)
+float * inference(std::vector<CNN_layer_struct> &layers, float * input, double runtime[5]
+#ifdef FPGA
+                  , PYNQ_MMIO_WINDOW &hls
+#endif
+                  )
 {
 	float * X = input;
 	int block = 1; // Which "block" of the CNN we are in, currently tracked hackily by counting conv layers
@@ -579,7 +586,7 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
     			printf("start\n");
     			while(!(*hls_ctrl & 0b100)){}; // waiting for the IDLE(the 3rd bit) to 1, then we can print out the result
     			printf("end\n");
-#elif
+#else
         		// TODO: Rename in_h param to block and remove the others
     			//        in_sm, w_sm,	b_sm, in_w,      in_h,      in_c,      out_c,     out_sm
             	EntryConv(X,     lay.W, lay.B,0,		 block,			0, 		   0, 		  lay.Z     );
@@ -615,8 +622,11 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
 
 void benchNet(std::vector<CNN_layer_struct> &layers,
         const char * images[],
-		const int ref[], int N_in,
-		PYNQ_MMIO_WINDOW &hls)
+		const int ref[], int N_in
+#ifdef FPGA
+		, PYNQ_MMIO_WINDOW &hls
+#endif
+        )
 {
 	int N = N_in;
 	if(N > IMAGES_MAX_TEST){
@@ -635,7 +645,11 @@ void benchNet(std::vector<CNN_layer_struct> &layers,
 	for(int i =0; i < N; i++){
 		printf("Image: %s\n",images[i]);
 		auto start = mtick();
-		float * Z = inference(layers, X[i], runtime, hls);
+		float * Z = inference(layers, X[i], runtime
+#ifdef FPGA
+		                      , hls
+#endif
+		);
 		total_time += mtock(start);
 		pred[i] = classImage(Z);
 		printf("Actual Class: %s\n",classes_img100[ref[i]]);
@@ -673,6 +687,7 @@ int main(int argc, char* argv[]) {
  	printf("Running mediumnet on %d images.\n",N);
 
 	auto f = fopen("/home/xilinx/final/weights/mediumnet_weights.dat", "rb");
+	if(!f) f = fopen("weights/mediumnet_weights.dat", "rb");
 	if(!f) {
 		printf("Please adapt the absolute path to the weights in boardnet.cpp:main\n");
     	return 1;
@@ -696,7 +711,11 @@ int main(int argc, char* argv[]) {
 	readMediumNet(f, mediumNet);
  	printf("CCCCC\n");
 
-	benchNet(mediumNet,input_imgs,imgs_class,N, hls);
+	benchNet(mediumNet,input_imgs,imgs_class,N
+#ifdef FPGA
+	         , hls
+#endif
+	);
 
 	freeLayers(mediumNet);
 
@@ -705,7 +724,9 @@ int main(int argc, char* argv[]) {
 
 	fclose(f);
 
+#ifdef FPGA
 	PYNQ_closeMMIOWindow( &led);
 	PYNQ_closeMMIOWindow( &hls);
+#endif
 	return 0;
 }
