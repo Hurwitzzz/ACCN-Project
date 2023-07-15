@@ -102,7 +102,7 @@ void Conv2D(dt IN[IN_C][IS][IS],
 			if constexpr(poolX2) {
 				writeRowToOUTPool: for(int x = 0; x < OSX; x++) {
 #pragma HLS pipeline II=1
-					// Vitis HLS doesn't support if constexpr(relu)	but for mediumnet there's always a relu and pooling layer following anyways
+					// Not sure if Vitis HLS supports if constexpr(relu) but for mediumnet there's always a relu and pooling layer following anyways
 					dt sum = acc_row[x * 2] + b[oc];
 					if(sum < 0) sum = 0;
 					dt sum2 = acc_row[x * 2 + 1] + b[oc];
@@ -114,7 +114,7 @@ void Conv2D(dt IN[IN_C][IS][IS],
 			} else {
 				writeRowToOUT: for(int x = 0; x < OS; x++) {
 #pragma HLS pipeline II=1
-					// Vitis HLS doesn't support if constexpr(relu)	but for mediumnet there's always a relu and pooling layer following anyways
+					// Not sure if Vitis HLS supports if constexpr(relu) but for mediumnet there's always a relu and pooling layer following anyways
 					dt sum = acc_row[x] + b[oc];
 					if(sum < 0) sum = 0;
 					OUT[oc][y][x] = sum;

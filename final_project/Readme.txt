@@ -17,7 +17,24 @@ The expected folder structure of the folders not included here is
 
 2. Managed to do Tensor inference and Benchmark on Board.
 	We can run mediumnet inference on the board and benchmark it
-Run with CPU
+Running basicConv with CPU
+    Running mediumnet on 1 images.
+    input_images/n07753275_18098.bmp
+    Image: input_images/n07753275_18098.bmp
+    Predicted class with 0.630645 : pineapple, ananas 
+    Actual Class: pineapple, ananas
+    Total Time [ms]: 111713.078125
+    Frames/s : 0.008952
+    Execution Time [ms]:
+    --------------------
+    Linear Layer: 155.422005 
+    Pool Layer: 49.350000 
+    ReLU Layer: 53.455001 
+    Conv Layer: 111454.639160 
+    Softmax Layer: 0.163000 
+    --------------------
+    Accuracy: 1 of 1 images (1.000000 % )!
+Running EntryConv with CPU (faster due to improved iteration order oc->y->ic->x similar to basicConv3 reference)
     Running mediumnet on 1 images.
     input_images/n07753275_18098.bmp
     Image: input_images/n07753275_18098.bmp
