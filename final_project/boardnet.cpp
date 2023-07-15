@@ -6,7 +6,7 @@
 #include "conv.h"
 #include "common.h"
 
-//#define FPGA
+#define FPGA
 
 #ifdef FPGA
 extern "C"{
@@ -163,11 +163,21 @@ void freeLayers(std::vector<CNN_layer_struct> &layers)
 			case Layer_Type::Pool:
 				delete [] lay.Z;
 				break;
-			case Layer_Type::Conv:
+			case Layer_Type::Conv: {
+#ifdef FPGA
+            	int res = PYNQ_freeSharedMemory(&lay.sm_z);
+				printf("Zfree res: %d\n", res);
+            	res = PYNQ_freeSharedMemory(&lay.sm_w);
+				printf("Wfree res: %d\n", res);
+            	res = PYNQ_freeSharedMemory(&lay.sm_b);
+				printf("Bfree res: %d\n", res);
+#else
 				delete [] lay.Z;
 				delete [] lay.W;
 				delete [] lay.B;
+#endif
 				break;
+			}
 			case Layer_Type::Linear:
 				delete [] lay.Z;
 				delete [] lay.W;
@@ -586,6 +596,10 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
     			printf("start\n");
     			while(!(*hls_ctrl & 0b100)){}; // waiting for the IDLE(the 3rd bit) to 1, then we can print out the result
     			printf("end\n");
+
+            	res = PYNQ_freeSharedMemory(&sm_x);
+				printf("Xfree res: %d\n", res);
+
 #else
         		// TODO: Rename in_h param to block and remove the others
     			//        in_sm, w_sm,	b_sm, in_w,      in_h,      in_c,      out_c,     out_sm
