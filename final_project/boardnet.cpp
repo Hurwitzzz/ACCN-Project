@@ -577,7 +577,7 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
 #ifdef FPGA
 				// TODO: Alloc lay.Z of previous layer as shared to elide memcpy here
 				PYNQ_SHARED_MEMORY sm_x;
-            	int res = PYNQ_allocatedSharedMemory(&sm_x, padded_size[0] * padded_size[1] * padded_size[2] * sizeof(float), 1);
+            	int res = PYNQ_allocatedSharedMemory(&sm_x, padded_size[0] * padded_size[1] * padded_size[2] * sizeof(float), 0);
 				printf("X res: %d\n", res);
 
 				float * virt_x = (float *) sm_x.pointer;
