@@ -6,7 +6,7 @@
 #include "conv.h"
 #include "common.h"
 
-#define FPGA
+//#define FPGA
 
 #ifdef FPGA
 extern "C"{
@@ -18,7 +18,9 @@ extern "C"{
 #include <vector>
 #include <cmath>
 
-
+//Hack to check size of dt at compiletime
+// char checker(int);
+// char checkSizeOfInt[sizeof(dt)]={checker(&checkSizeOfInt)};
 
 enum struct Layer_Type : uint32_t {Linear = 0,Pool = 1 ,ReLU = 2,Conv = 3,Softmax = 4};
 enum Optimization {None = 0, FFT = 1, Wino = 2, Auto = 3};
@@ -31,9 +33,9 @@ typedef struct{
 	uint32_t pad;
 	bool in_place = false;
 	Optimization optimized = Optimization::None; // Stores which optimization will be used for convolutional layers. Default is None, not Auto!
-	float * Z;
-	float * W;
-	float * B;
+	dt * Z;
+	dt * W;
+	dt * B;
 #ifdef FPGA
 	PYNQ_SHARED_MEMORY sm_w, sm_b, sm_z;
 #endif
@@ -113,34 +115,31 @@ void allocLayers(std::vector<CNN_layer_struct> &layers)
 				if(lay.in_place)
 					lay.Z = layers[i - 1].Z;
 				else
-					lay.Z = new float[ layers[i-1].output_size[0] * lay.output_size[1] * lay.output_size[2] ];
+					lay.Z = new dt[ layers[i-1].output_size[0] * lay.output_size[1] * lay.output_size[2] ];
 				break;
 			case Layer_Type::Pool:
-				lay.Z = new float[ lay.output_size[0] * lay.output_size[1] * lay.output_size[2] ];
+				lay.Z = new dt[ lay.output_size[0] * lay.output_size[1] * lay.output_size[2] ];
 				break;
 			case Layer_Type::Conv: {
 #ifdef FPGA
-            	int res = PYNQ_allocatedSharedMemory(&lay.sm_z, lay.output_size[0] * lay.output_size[1] * lay.output_size[2] * sizeof(float), 0);
-				printf("Z res: %d\n", res);
-            	res = PYNQ_allocatedSharedMemory(&lay.sm_w, lay.output_size[0] * lay.input_channels * lay.kernel_width * lay.kernel_width * sizeof(float), 0);
-				printf("W res: %d\n", res);
-            	res = PYNQ_allocatedSharedMemory(&lay.sm_b, lay.output_size[0] * sizeof(float), 0);
-				printf("B res: %d\n", res);
-            	lay.Z = (float *) lay.sm_z.pointer;
-            	lay.W = (float *) lay.sm_w.pointer;
-            	lay.B = (float *) lay.sm_b.pointer;
+				if(!PYNQ_allocatedSharedMemory(&lay.sm_z, lay.output_size[0] * lay.output_size[1] * lay.output_size[2] * sizeof(dt), 0)) printf("Shared alloc Z failed.\n");
+				if(!PYNQ_allocatedSharedMemory(&lay.sm_w, lay.output_size[0] * lay.input_channels * lay.kernel_width * lay.kernel_width * sizeof(dt), 0)) printf("Shared alloc W failed.\n");
+				if(!PYNQ_allocatedSharedMemory(&lay.sm_b, lay.output_size[0] * sizeof(dt), 0)) printf("Shared alloc B failed.\n");
+            	lay.Z = (dt *) lay.sm_z.pointer;
+            	lay.W = (dt *) lay.sm_w.pointer;
+            	lay.B = (dt *) lay.sm_b.pointer;
 #else
-				lay.Z = new float[ lay.output_size[0] * lay.output_size[1] * lay.output_size[2] ];
-				lay.W = new float[ lay.output_size[0] * lay.input_channels * lay.kernel_width * lay.kernel_width ];
-				lay.B = new float[ lay.output_size[0] ];
+				lay.Z = new dt[ lay.output_size[0] * lay.output_size[1] * lay.output_size[2] ];
+				lay.W = new dt[ lay.output_size[0] * lay.input_channels * lay.kernel_width * lay.kernel_width ];
+				lay.B = new dt[ lay.output_size[0] ];
 #endif
 				break;
 			}
 			case Layer_Type::Linear:
 				insize = layers[i-1].output_size[0] * layers[i-1].output_size[1] * layers[i-1].output_size[2];
-				lay.Z = new float[ 1 * 1 * lay.output_size[2] ];
-				lay.W = new float[ 1 * lay.output_size[2] * insize ];
-				lay.B = new float[ 1 * 1 * lay.output_size[2] ];
+				lay.Z = new dt[ 1 * 1 * lay.output_size[2] ];
+				lay.W = new dt[ 1 * lay.output_size[2] * insize ];
+				lay.B = new dt[ 1 * 1 * lay.output_size[2] ];
 				break;
 			default:
 				printf("Layer not implemented !\n");
@@ -165,12 +164,9 @@ void freeLayers(std::vector<CNN_layer_struct> &layers)
 				break;
 			case Layer_Type::Conv: {
 #ifdef FPGA
-            	int res = PYNQ_freeSharedMemory(&lay.sm_z);
-				printf("Zfree res: %d\n", res);
-            	res = PYNQ_freeSharedMemory(&lay.sm_w);
-				printf("Wfree res: %d\n", res);
-            	res = PYNQ_freeSharedMemory(&lay.sm_b);
-				printf("Bfree res: %d\n", res);
+				PYNQ_freeSharedMemory(&lay.sm_z);
+				PYNQ_freeSharedMemory(&lay.sm_w);
+				PYNQ_freeSharedMemory(&lay.sm_b);
 #else
 				delete [] lay.Z;
 				delete [] lay.W;
@@ -229,19 +225,19 @@ int checkLayerMeta(CNN_layer_struct * lay, FILE * f)
 	}
 	return 1;
 }
-
+// Returns 0 on failure
 int readConvWandB(FILE * f,
-                  float * W, uint32_t exp_W_size[4],
-                  float * B, uint32_t exp_B_size[3])
+                  dt * W, uint32_t exp_W_size[4],
+                  dt * B, uint32_t exp_B_size[3])
 {
     uint32_t W_size[4] = {exp_W_size[0], exp_W_size[1], exp_W_size[2], exp_W_size[3]};
     if(!readTensorSize(f, &W_size[1])) return 0;
 
     if(W_size[0] != exp_W_size[0] ||
-		W_size[1] != exp_W_size[1] ||
-		W_size[2] != exp_W_size[2] ||
-		W_size[3] != exp_W_size[3]) {
-    		printf("Dimensions don't match");
+	   W_size[1] != exp_W_size[1] ||
+	   W_size[2] != exp_W_size[2] ||
+	   W_size[3] != exp_W_size[3]) {
+		printf("Dimensions don't match");
     }
 
     //resizeTensor(W, W_size, new_W_size, 4);
@@ -251,10 +247,10 @@ int readConvWandB(FILE * f,
     	}
 
         if(W_size[0] != exp_W_size[0] ||
-    		W_size[1] != exp_W_size[1] ||
-    		W_size[2] != exp_W_size[2] ||
-    		W_size[3] != exp_W_size[3]) {
-        		printf("Dimensions don't match");
+		   W_size[1] != exp_W_size[1] ||
+		   W_size[2] != exp_W_size[2] ||
+		   W_size[3] != exp_W_size[3]) {
+			printf("Dimensions don't match");
         }
 
 		if(!readTensorRaw(f, &(W)[i*W_size[1]*W_size[2]*W_size[3]], &W_size[1])) return 0;
@@ -264,27 +260,28 @@ int readConvWandB(FILE * f,
     if(!readTensorSize(f, B_size)) return 0;
 
     if(B_size[0] != exp_B_size[0] ||
-		B_size[1] != exp_B_size[1] ||
-		B_size[2] != exp_B_size[2]) {
+	   B_size[1] != exp_B_size[1] ||
+	   B_size[2] != exp_B_size[2]) {
     	printf("B dims don't match");
     }
 
     //resizeTensor(B, B_size, new_B_size, 3);
     if(!readTensorRaw(f, B, B_size)) return 0;
 
-	return 1; //CNN_RETURN_SUCCESS;
+	return 1;
 }
 
+// Returns 0 on failure
 int readFCWandB(FILE * f,
-                float * W, uint32_t exp_W_size[3],
-                float * B, uint32_t exp_B_size[3])
+                dt * W, uint32_t exp_W_size[3],
+                dt * B, uint32_t exp_B_size[3])
 {
     uint32_t W_size[3];
     if(!readTensorSize(f, W_size)) return 0;
     if(W_size[0] != exp_W_size[0] ||
-		W_size[1] != exp_W_size[1] ||
-		W_size[2] != exp_W_size[2]) {
-    		printf("Dimensions don't match");
+	   W_size[1] != exp_W_size[1] ||
+	   W_size[2] != exp_W_size[2]) {
+		printf("Dimensions don't match");
     }
 
     //resizeTensor(W, W_size, W_size, 3); 
@@ -293,9 +290,9 @@ int readFCWandB(FILE * f,
     uint32_t B_size[3];
     if(!readTensorSize(f, B_size)) return 0;
     if(B_size[0] != exp_B_size[0] ||
-		B_size[1] != exp_B_size[1] ||
-		B_size[2] != exp_B_size[2]) {
-    	printf("B dims don't match");
+	   B_size[1] != exp_B_size[1] ||
+	   B_size[2] != exp_B_size[2]) {
+		printf("B dims don't match");
     }
     // resizeTensor(B, B_size, B_size, 3); 
     if(!readTensorRaw(f, B, B_size)) return 0;
@@ -304,6 +301,7 @@ int readFCWandB(FILE * f,
 }
 
 std::vector<CNN_layer_struct> mediumNet= {
+    // Block 1
 	ConvLayer(3,96,128,128,7,3),
 	ReLULayer(),
 	PoolLayer(96,64,64),
@@ -331,16 +329,17 @@ std::vector<CNN_layer_struct> mediumNet= {
 	SoftmaxLayer(),
 };
 
-int readMediumNet(FILE * f,	std::vector<CNN_layer_struct> &layers) {
+// Returns 0 on failure
+int readNet(FILE * f,	std::vector<CNN_layer_struct> &layers) {
 
 	uint32_t nlayers;
 	if(fread(&(nlayers),sizeof(nlayers),1,f) == 0){
 		printf("Reading number of layers failed!\n");
-		return 0; //CNN_RETURN_FAILED;
+		return 0;
 	}
 	if(layers.size() != nlayers){
 		printf("Layer sizes do not match reading weights failed!\n");
-		return 0; //CNN_RETURN_FAILED;
+		return 0;
 	}
 	uint32_t prev_size = 0;
 	for(int i = 0; i < nlayers; i++){
@@ -366,9 +365,9 @@ int readMediumNet(FILE * f,	std::vector<CNN_layer_struct> &layers) {
 			case Layer_Type::Linear: {
 
 				//insize = layers[i-1].output_size[0] * layers[i-1].output_size[1] * layers[i-1].output_size[2];
-				// lay.Z = new float[ 1 * 1 * lay.output_size[2] ];
-				// lay.W = new float[ 1 * lay.output_size[2] * insize ];
-				// lay.B = new float[ 1 * 1 * lay.output_size[2] ];
+				// lay.Z = new dt[ 1 * 1 * lay.output_size[2] ];
+				// lay.W = new dt[ 1 * lay.output_size[2] * insize ];
+				// lay.B = new dt[ 1 * 1 * lay.output_size[2] ];
 				uint32_t W_size[3] = {1, lay->output_size[2], prev_size};
 				uint32_t B_size[3] = {1, 1, lay->output_size[2]};
 				if(!readFCWandB(f,
@@ -386,43 +385,79 @@ int readMediumNet(FILE * f,	std::vector<CNN_layer_struct> &layers) {
 	return 1;
 }
 
-
-// Convolution implemented in conv
-
 /*
  * Applies a max pool layer on X (size = stride = 2)
  * Tensor * X:	input Tensor
  * Tensor * Z:	output Tensor
  */
-void maxPool(float * X, uint32_t X_size[3], float * Z, uint32_t Z_size[3])
+void maxPool(dt * X, uint32_t X_size[3], dt * Z, uint32_t Z_size[3])
 {
 	// printf("%d %d %d\n", X_size[0], X_size[1], X_size[2]);
 	// printf("%d %d %d\n", Z_size[0], Z_size[1], Z_size[2]);
 	int num_chan = X_size[0];
-	int wx = X_size[1];
-	int wy = X_size[2];
+	int wy = X_size[1];
+	int wx = X_size[2];
 	for (int chan = 0; chan < num_chan; chan++) {
-		for (int x = 0; x < wx; x += 2) {
-			for (int y = 0; y < wy; y += 2) {
-			float max = 0; //X->data[chan][x][y] and then skip that one in the loop
-				for (int ix = 0; ix < 2/* && x + ix < wx*/; ix++) {
-					for (int iy = 0; iy < 2/* && y + iy < wy*/; iy++) {
-						if(chan*X_size[1]*X_size[2] + (x+ix)*X_size[2] + y+iy >=
-						   X_size[0] * X_size[1] * X_size[2]) {
-    						printf("x, y, ix, iy: %d %d %d %d\n",x,y,ix,iy);
-						}
-						float curr = X[chan*X_size[1]*X_size[2] + (x+ix)*X_size[2] + y+iy];
+		for (int y = 0; y < wy; y += 2) {
+			for (int x = 0; x < wx; x += 2) {
+				dt max = 0; //X->data[chan][y][x] and then skip that one in the loop
+				for (int iy = 0; iy < 2/* && y + iy < wy*/; iy++) {
+					for (int ix = 0; ix < 2/* && x + ix < wx*/; ix++) {
+						dt curr = X[chan*X_size[1]*X_size[2] + (y+iy)*X_size[2] + x+ix];
 						if (curr > max) {
 							max = curr;
 						}
 					}
 				}
-			Z[chan*Z_size[1]*Z_size[2] + (x / 2)*Z_size[2] + y / 2] = max;
+				Z[chan*Z_size[1]*Z_size[2] + (y / 2)*Z_size[2] + x / 2] = max;
 			}
 		}
 	}
 }
 
+// Only max pools across the X axis, this is already done on FPGA, here just for reference
+void maxPoolX(dt * X, uint32_t X_size[3], dt * Z, uint32_t Z_size[3])
+{
+	int num_chan = X_size[0];
+	int wy = X_size[1];
+	int wx = X_size[2];
+	for (int chan = 0; chan < num_chan; chan++) {
+		for (int y = 0; y < wy; y += 1) {
+			for (int x = 0; x < wx; x += 2) {
+				dt max = 0; //X->data[chan][y][x] and then skip that one in the loop
+				for (int ix = 0; ix < 2/* && x + ix < wx*/; ix++) {
+					dt curr = X[chan*X_size[1]*X_size[2] + y*X_size[2] + x+ix];
+					if (curr > max) {
+						max = curr;
+					}
+				}
+				Z[chan*Z_size[1]*Z_size[2] + y*Z_size[2] + x / 2] = max;
+			}
+		}
+	}
+}
+
+// Max pools across the Y axis, as X axis is already done on FPGA
+void maxPoolY(dt * X, uint32_t X_size[3], dt * Z, uint32_t Z_size[3])
+{
+	int num_chan = X_size[0];
+	int wy = X_size[1];
+	int wx = X_size[2];
+	for (int chan = 0; chan < num_chan; chan++) {
+		for (int y = 0; y < wy; y += 2) {
+			for (int x = 0; x < wx; x ++) {
+				dt max = 0;
+				for (int iy = 0; iy < 2/* && y + iy < wy*/; iy++) {
+					dt curr = X[chan*X_size[1]*X_size[2] + (y+iy)*X_size[2] + x];
+					if (curr > max) {
+						max = curr;
+					}
+				}
+				Z[chan*Z_size[1]*Z_size[2] + (y / 2)*Z_size[2] + x] = max;
+			}
+		}
+	}
+}
 
 /*
  * Applies a Linear layer: z = Wx + b 
@@ -432,7 +467,7 @@ void maxPool(float * X, uint32_t X_size[3], float * Z, uint32_t Z_size[3])
  * Tensor *	B: bias array (in Tensor form)
  * Tensor *	Z: output array (in Tensor form)
  */
-void Linear(float * X, uint32_t X_size[3], float * W, uint32_t W_size[3], float * B, uint32_t B_size[3], float * Z, uint32_t Z_size[3])
+void Linear(dt * X, uint32_t X_size[3], dt * W, uint32_t W_size[3], dt * B, uint32_t B_size[3], dt * Z, uint32_t Z_size[3])
 {
 	// printf("%d %d %d\n", X->size[0], X->size[1], X->size[2]);
 	// printf("%d %d %d\n", W->size[0], W->size[1], W->size[2]);
@@ -449,7 +484,7 @@ void Linear(float * X, uint32_t X_size[3], float * W, uint32_t W_size[3], float 
 	int wwx = W_size[1];
 	for (int x = 0; x < wx; x++) {
 		for (int y = 0; y < wwx; y++) {
-			float sum = 0;
+			dt sum = 0;
 			for (int i = 0; i < wy; i++) {
 				sum += X[0 + x*flat_X_size[2] + i] * W[0 + y*W_size[2] + i];
 			}
@@ -464,12 +499,12 @@ void Linear(float * X, uint32_t X_size[3], float * W, uint32_t W_size[3], float 
  * Tensor * X: input Tensor
  * Tensor * Z: output Tensor
  */
-void ReLU(float * X, float * Z, int input_size)
+void ReLU(dt * X, dt * Z, int input_size)
 {
 	// printf("%d %d %d\n", X->size[0], X->size[1], X->size[2]);
 	// printf("%d %d %d\n", Z->size[0], Z->size[1], Z->size[2]);
     for (uint32_t i=0; i<input_size; i++) {
-		float max = X[i];
+		dt max = X[i];
 		if(max < 0) {
 			Z[i] = 0;
 		} else {
@@ -482,12 +517,39 @@ void ReLU(float * X, float * Z, int input_size)
  * Applies the ReLU activation function inplace: X = ReLU(X)
  * Tensor * X: in/output Tensor
  */
-void ReLUInplace(float * X, int input_size)
+void ReLUInplace(dt * X, int input_size)
 {
 	// printf("%d %d %d\n", X->size[0], X->size[1], X->size[2]);
     for (uint32_t i=0; i<input_size; i++)
     {
-        X[i] = std::max(0.0f, X[i]);
+        if(X[i] < 0)
+	        X[i] = 0;
+    }
+}
+
+//Softmax that avoids large values by subtracting the max
+//from all exp inputs
+void softmax1d(dt * out, dt * in, int len) {
+    double max_val = in[0];
+    for (int i = 1; i < len; i++) {
+        if (in[i] > max_val) {
+            max_val = in[i];
+        }
+    }
+    double exp_values[len];
+    for (int i = 0; i < len; i++) {
+        exp_values[i] = std::exp((double) in[i] - max_val);
+    }
+    
+    // Sum up all the exponential values
+    double sum_exp = 0.0;
+    for (int i = 0; i < len; i++) {
+        sum_exp += exp_values[i];
+    }
+    
+    // Divide each exponential value by the sum
+    for (int i = 0; i < len; i++) {
+        out[i] = exp_values[i] / sum_exp;
     }
 }
 
@@ -497,7 +559,7 @@ void ReLUInplace(float * X, int input_size)
  * Tensor * X: input vector in Tensor form
  * Tensor * Z: output vector in Tensor form
  */
-void Softmax(float * X, float * Z, uint32_t size[3]) // Same in as out size
+void Softmax(dt * X, dt * Z, uint32_t size[3]) // Same in as out size
 {
 	// printf("%d %d %d\n", X->size[0], X->size[1], X->size[2]);
 	// printf("%d %d %d\n", Z->size[0], Z->size[1], Z->size[2]);
@@ -506,26 +568,27 @@ void Softmax(float * X, float * Z, uint32_t size[3]) // Same in as out size
 	int wy = size[2];
 	for (int chan = 0; chan < num_chan; chan++) {
 		for (int x = 0; x < wx; x++) {
-    		float sum = 0;
-			for (int y = 0; y < wy; y++) {
-				sum += exp(X[chan*size[1]*size[2] + x*size[2] +y]);
-			}
-			for (int y = 0; y < wy; y++) {
-    			float max = exp(X[chan*size[1]*size[2] + x*size[2] +y]) / sum;
-				Z[chan*size[1]*size[2] + x*size[2] +y] = max;
-			}
+			softmax1d(&Z[chan*size[1]*size[2]], &X[chan*size[1]*size[2]], wy);
+			// dt sum = 0;
+			// for (int y = 0; y < wy; y++) {
+			// 	sum += (dt) exp((float)X[chan*size[1]*size[2] + x*size[2] +y]);
+			// }
+			// for (int y = 0; y < wy; y++) {
+			//	dt max = (dt) exp((float)X[chan*size[1]*size[2] + x*size[2] +y]) / sum;
+			// 	Z[chan*size[1]*size[2] + x*size[2] +y] = max;
+			// }
 		}
 	}
 }
 
 
-float * inference(std::vector<CNN_layer_struct> &layers, float * input, double runtime[5]
+dt * inference(std::vector<CNN_layer_struct> &layers, dt * input, double runtime[5]
 #ifdef FPGA
                   , PYNQ_MMIO_WINDOW &hls
 #endif
                   )
 {
-	float * X = input;
+	dt * X = input;
 	int block = 1; // Which "block" of the CNN we are in, currently tracked hackily by counting conv layers
 	for(int i = 0; i < layers.size(); i++){
 		CNN_layer_struct & lay = layers[i];
@@ -533,7 +596,7 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
 		auto start = mtick();
 		switch(lay.type){
 			case Layer_Type::ReLU: {
-    			printf("Relu\n");
+    			// printf("Relu\n");
     			int size = lay.output_size[0] * lay.output_size[1] * lay.output_size[2];
 				if(lay.in_place) {
     				ReLUInplace(X, size);
@@ -545,14 +608,14 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
 				break;
 			}
 			case Layer_Type::Softmax: {
-    			printf("Softmax\n");
+    			// printf("Softmax\n");
 				Softmax(X, lay.Z, lay.output_size);
 				X = lay.Z;
 				runtime[4] += mtock(start);
 				break;
 			}
 			case Layer_Type::Pool: {
-    			printf("Pool\n");
+    			// printf("Pool\n");
     			uint32_t in_size[3] = {lay.output_size[0], lay.output_size[1] * 2, lay.output_size[2] * 2};
 				maxPool(X, in_size, lay.Z, lay.output_size);
 				X = lay.Z;
@@ -560,32 +623,17 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
 				break;
 			}
 			case Layer_Type::Conv: {
-    			printf("Conv\n");
+    			// printf("Conv\n");
     			uint32_t padded_size[3] = {lay.input_channels, lay.output_size[1]+lay.kernel_width-1, lay.output_size[2]+lay.kernel_width-1};
-                uint32_t unpadded_size[3] = {lay.input_channels, padded_size[1]-lay.pad*2, padded_size[2]-lay.pad*2};
-                printf("padding: %d\n", lay.pad);
-                printf("padded: %d %d %d \n", padded_size[0], padded_size[1], padded_size[2]);
+			    uint32_t unpadded_size[3] = {lay.input_channels, padded_size[1]-lay.pad*2, padded_size[2]-lay.pad*2};
+			    // printf("padding: %d\n", lay.pad);
+			    // printf("padded: %d %d %d \n", padded_size[0], padded_size[1], padded_size[2]);
 				if(lay.pad > 0) { X = padTensor(X, unpadded_size, lay.pad); }
 
                 uint32_t W_size[4] = {lay.output_size[0], lay.input_channels, lay.kernel_width, lay.kernel_width};
                 uint32_t B_size[3] = {1, 1, lay.output_size[0]};
 
-				double W_sum = 0;
-				for(int i = 0; i < W_size[3] * W_size[2] * W_size[1] * W_size[0]; i++) {
-					W_sum += lay.W[i];
-				}
-				printf("Wsum %f\n", W_sum);
-				double B_sum = 0;
-				for(int i = 0; i < B_size[2] * B_size[1] * B_size[0]; i++) {
-					B_sum += lay.B[i];
-				}
-				printf("Bsum %f\n", B_sum);
-				double X_sum = 0;
-				for(int i = 0; i < padded_size[2] * padded_size[1] * padded_size[0]; i++) {
-					X_sum += X[i];
-				}
-				printf("Xsum %f\n", X_sum);
-                //Reference impl:
+                //Reference impl (does not do Relu and maxPool)
         		// convBasic(X, padded_size,
         		//           lay.W, W_size,
         		//           lay.B, B_size,
@@ -593,52 +641,51 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
 #ifdef FPGA
 				// TODO: Alloc lay.Z of previous layer as shared to elide memcpy here
 				PYNQ_SHARED_MEMORY sm_x;
-            	int res = PYNQ_allocatedSharedMemory(&sm_x, padded_size[0] * padded_size[1] * padded_size[2] * sizeof(float), 0);
-				printf("X res: %d\n", res);
+				if(!PYNQ_allocatedSharedMemory(&sm_x, padded_size[0] * padded_size[1] * padded_size[2] * sizeof(dt), 0)) printf("Shared alloc X failed.\n");
 
-				float * virt_x = (float *) sm_x.pointer;
-    			memcpy(virt_x, X, sizeof(float) * padded_size[0]*padded_size[1]*padded_size[2]);
+				dt * virt_x = (dt *) sm_x.pointer;
+    			memcpy(virt_x, X, sizeof(dt) * padded_size[0]*padded_size[1]*padded_size[2]);
 
             	// Copy addr over axilite, these can be found in the HLS Summary
             	memcpy(hls.buffer + 0x10, &(sm_x.physical_address), sizeof(size_t));
             	memcpy(hls.buffer + 0x1c, &(lay.sm_w.physical_address), sizeof(size_t));
             	memcpy(hls.buffer + 0x28, &(lay.sm_b.physical_address), sizeof(size_t));
-            	memcpy(hls.buffer + 0x54, &(lay.sm_z.physical_address), sizeof(size_t));
-    			memcpy(hls.buffer + 0x44, &(block), sizeof(int));
-    			memcpy(hls.buffer + 0x34, &(block), sizeof(int));
-    			memcpy(hls.buffer + 0x3c, &(block), sizeof(int));
-    			memcpy(hls.buffer + 0x44, &(block), sizeof(int));
-    			memcpy(hls.buffer + 0x4c, &(block), sizeof(int));
+            	memcpy(hls.buffer + 0x34, &(lay.sm_z.physical_address), sizeof(size_t));
+    			memcpy(hls.buffer + 0x40, &(block), sizeof(int));
 
     			/* Start HLS by setting bit */
-				uint32_t * hls_ctrl = (uint32_t *) hls.buffer;
+    			// O3 MAY "OPTIMIZE" OUT THE LOOP CONDITION IF HLS_CTRL IS NOT VOLATILE
+				volatile uint32_t * hls_ctrl = (uint32_t *) hls.buffer;
     			*hls_ctrl = 0b1;
-    			printf("start\n");
+    			// printf("start\n");
     			while(!(*hls_ctrl & 0b100)){}; // waiting for the IDLE(the 3rd bit) to 1, then we can print out the result
-    			printf("end\n");
+    			// printf("end\n");
 
-            	res = PYNQ_freeSharedMemory(&sm_x);
-				printf("Xfree res: %d\n", res);
-
+				PYNQ_freeSharedMemory(&sm_x);
 #else
-        		// TODO: Rename in_h param to block and remove the others
-    			//        in_sm, w_sm,	b_sm, in_w,      in_h,      in_c,      out_c,     out_sm
-            	EntryConv(X,     lay.W, lay.B,0,		 block,			0, 		   0, 		  lay.Z     );
+            	EntryConv(X, lay.W, lay.B, lay.Z, block);
 #endif
-				double Z_sum = 0;
-				for(int i = 0; i < lay.output_size[2] * lay.output_size[1] * lay.output_size[0]; i++) {
-					Z_sum += lay.Z[i];
-				}
-				printf("Zsum %f\n", Z_sum);
-
         		if(lay.pad > 0) { delete X; }
 				X = lay.Z;
+
+				if(layers[i+1].type == Layer_Type::ReLU) {
+    				i++; // Skip next ReLU layer already done on FPGA
+					if(layers[i+1].type == Layer_Type::Pool) {
+						i++; // Horizontal max pooling was done on the FPGA so only do vertical max pooling here
+						uint32_t in_size[3] = {lay.output_size[0], lay.output_size[1], lay.output_size[2] / 2};
+						maxPoolY(X, in_size, lay.Z, layers[i].output_size);
+					}
+				} else {
+    				printf("Expected ReLU to come after conv layer.\n");
+				}
+
+				// Include ReLU and Pool in runtime
 				runtime[3] += mtock(start);
 				block++;
 				break;
 			}
 			case Layer_Type::Linear: {
-    			printf("Linear\n");
+    			// printf("Linear\n");
     			uint32_t prev_size = layers[i-1].output_size[2] * layers[i-1].output_size[1] * layers[i-1].output_size[0];
 				uint32_t W_size[3] = {1, lay.output_size[2], prev_size};
 				uint32_t B_size[3] = {1, 1, lay.output_size[2]};
@@ -659,6 +706,22 @@ float * inference(std::vector<CNN_layer_struct> &layers, float * input, double r
 
 #include "inf_utils.h"
 
+dt * convertToDt(float * in, int len) {
+	dt * out = new dt[len];
+	for(int i = 0; i < len; i++) {
+    	out[i] = in[i];
+	}
+	return out;
+}
+
+float * convertFromDt(dt * in, int len) {
+	float * out = new float[len];
+	for(int i = 0; i < len; i++) {
+    	out[i] = in[i];
+	}
+	return out;
+}
+
 void benchNet(std::vector<CNN_layer_struct> &layers,
         const char * images[],
 		const int ref[], int N_in
@@ -672,25 +735,39 @@ void benchNet(std::vector<CNN_layer_struct> &layers,
 		printf("%d above amount of available images!\n", N);
 		N = IMAGES_MAX_TEST;
 	}
-	std::vector<float *> X(N);
+	std::vector<dt *> X(N);
 	std::vector<int> pred(N);
 	
 	for(int i =0; i < N; i++){
 		printf("%s\n",images[i]);
-		X[i] = readBMP(images[i]);
+    	//TODO: Convert to dt from float
+#if dt == fixed
+        	float * temp = readBMP(images[i]);
+    		X[i] = convertToDt(temp, 3*128*128);
+    		delete [] temp;
+#else
+    		X[i] = readBMP(images[i]);
+#endif
 	}
 	double runtime[5] = {0};
 	double total_time = 0;
 	for(int i =0; i < N; i++){
 		printf("Image: %s\n",images[i]);
 		auto start = mtick();
-		float * Z = inference(layers, X[i], runtime
+		dt * Z = inference(layers, X[i], runtime
 #ifdef FPGA
 		                      , hls
 #endif
 		);
 		total_time += mtock(start);
+    	//TODO: Convert from dt to float
+#if dt == fixed
+		float * temp = convertFromDt(Z, 100);
+		pred[i] = classImage(temp);
+		delete [] temp;
+#else
 		pred[i] = classImage(Z);
+#endif
 		printf("Actual Class: %s\n",classes_img100[ref[i]]);
 	}
 	printf("Total Time [ms]: %lf\n",total_time);
@@ -748,8 +825,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 	allocLayers(mediumNet);
-	readMediumNet(f, mediumNet);
- 	printf("CCCCC\n");
+	readNet(f, mediumNet);
 
 	benchNet(mediumNet,input_imgs,imgs_class,N
 #ifdef FPGA

@@ -10,8 +10,6 @@ extern "C"{
 #include "pynq_api.h"
 }
 
-#define KERNEL_SIZE 3
-
 int main(){
 	auto f = openTestFile();
 	if(!f) return 1;
@@ -21,15 +19,15 @@ int main(){
 	PYNQ_MMIO_WINDOW led, hls;  // hls is AXILITE interface
 	PYNQ_createMMIOWindow(&led, 0x40010000,8); //in this functino, it uses mmap; the address can be got from vivado; 8 is length
 	PYNQ_createMMIOWindow(&hls, 0x40000000,128); //0x00 to 0x2c is 32+12=44, plus 4bytes, 48 is enough. We give 64. It will allocate the whole page anyway, so it doesn't really matter how big you set this, as long as you don't go over 4kB; This is the MMIOwindow for hls_slave, we can write to here.
-	volatile uint32_t * hls_ctrl = (uint32_t *) hls.buffer;
+	uint32_t * hls_ctrl = (uint32_t *) hls.buffer;
 	*hls_ctrl = 0b100;
 
 	/* Alocating shared memory */
 	PYNQ_SHARED_MEMORY sm_x, sm_w, sm_b, sm_z;
-	PYNQ_allocatedSharedMemory(&sm_x, IN_CHANNEL * MAX_IN_SIZE * MAX_IN_SIZE * sizeof(float), 1);
+	PYNQ_allocatedSharedMemory(&sm_x, IN_CHANNEL * IN_SIZE * IN_SIZE * sizeof(float), 1);
 	PYNQ_allocatedSharedMemory(&sm_w, OUT_CHANNEL * IN_CHANNEL * KERNEL_SIZE * KERNEL_SIZE * sizeof(float), 1);
 	PYNQ_allocatedSharedMemory(&sm_b, OUT_CHANNEL * sizeof(float), 1);
-	PYNQ_allocatedSharedMemory(&sm_z, OUT_CHANNEL * MAX_OUT_SIZE * MAX_OUT_SIZE * sizeof(float), 1);
+	PYNQ_allocatedSharedMemory(&sm_z, OUT_CHANNEL * OUT_SIZE * OUT_SIZE * sizeof(float), 1);
 
 	/* write to the address */
 	// The structure of var"led" can be got from doc
@@ -70,7 +68,7 @@ int main(){
 		printf("Test X:[%dx%dx%d] W:[%dx%d] Output channels: %d!\n",X_size[0],X_size[1],X_size[2], W_size[2],W_size[3],R_size[0]);
 
 		if(W_size[2] == 3 && W_size[3] == 3) {
-			if(X_size[0] > IN_CHANNEL || X_size[1] > MAX_IN_SIZE || X_size[2] > MAX_IN_SIZE || R_size[0] > OUT_CHANNEL) {
+			if(X_size[0] > IN_CHANNEL || X_size[1] > IN_SIZE || X_size[2] > IN_SIZE || R_size[0] > OUT_CHANNEL) {
 				printf("Input/Output too big\n"); continue;
 			}
 			//Use FPGA for Conv2D_3x3:
@@ -89,7 +87,6 @@ int main(){
 			memcpy(virt_b, B, sizeof(float) * B_size[0] * B_size[1] * B_size[2]);
 
 			/* Start HLS by setting bit */
-			// O3 MAY "OPTIMIZE" OUT THE LOOP CONDITION IF HLS_CTRL IS NOT VOLATILE
 			*hls_ctrl = 0b1;
 			while(!(*hls_ctrl & 0b100)){}; // waiting for the IDLE(the 3rd bit) to 1, then we can print out the result
 

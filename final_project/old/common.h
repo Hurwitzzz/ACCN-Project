@@ -1,43 +1,34 @@
 #ifndef common_h_INCLUDED
 #define common_h_INCLUDED
 
-#include "conv.h"
 
-#include <sys/time.h>
+// void Tensor::write(FILE *f)
+// {
+// 	uint64_t num_params = size[0]*size[1]*size[2];
+// 	fwrite(&(size[0]),sizeof(size[0]),1,f);
+// 	fwrite(&(size[1]),sizeof(size[1]),1,f);
+// 	fwrite(&(size[2]),sizeof(size[2]),1,f);
+// 	fwrite(data[0][0],sizeof(data[0][0][0]),num_params,f);
+// }
 
-struct timeval mtick(){
-	struct timeval start;
-	gettimeofday(&start,0);
-	return start;
-}
-
-double mtock(struct timeval start){
-	struct timeval stop;
-	gettimeofday(&stop,0);
-	double time = (stop.tv_sec - start.tv_sec)*1000 + 
-		(stop.tv_usec - start.tv_usec)/(1000.f);
-	return time;
-}
-
-dt * padTensor(dt * X, uint32_t X_size[3], uint32_t pad)
-{
-	int N = X_size[1] + pad*2;
-	int K = X_size[2] + pad*2;
-	dt * Xpad = new dt[X_size[0] * N * K];
-	for(int c = 0; c < X_size[0]; c++){
-		for(int i = 0; i < N ;i++){
-			for(int j = 0; j < K; j++){
-				if((i >= pad) && (i < (N-pad)) &&
-					(j >=  pad) && (j <  (K- pad))) {
-					Xpad[c*N*K + i*K + j] = X[c*X_size[1]*X_size[2] + (i-pad)*X_size[2] + j-pad];
-				} else {
-    				Xpad[c*N*K + i*K + j] = 0;
-				}
-			}
-		}
-	}
-	return Xpad;
-}
+// Tensor * padTensor(Tensor * X , uint32_t pad)
+// {
+// 	int N = X->size[1] +  pad *2;
+// 	int K = X->size[2] +  pad *2;
+// 	Tensor * Xpad = new Tensor(X->size[0], N,K);
+// 	for(int z = 0; z < X->size[0]; z++){
+// 		float ** xpad = (*Xpad)[z];
+// 		float ** x = (*X)[z];
+// 		for(int i = 0; i < N ;i++){
+// 			for(int j = 0; j < K; j++){
+// 				if((i >= pad) && (i < (N-pad)) &&
+// 							(j >=  pad) && (j <  (K- pad)))
+// 					xpad[i][j] = x[i-pad][j-pad];
+// 			}
+// 		}
+// 	}
+// 	return Xpad;
+// }
 
 static float Fabs(float a)
 {
@@ -72,10 +63,10 @@ int compareTensorsRaw(float* a, uint32_t a_size[3], float* ref, uint32_t ref_siz
 }
 
 // Iterates in oc->y->x->ic->ky->kx order
-void convBasic(dt* X, uint32_t X_size[3],
-               dt* W, uint32_t W_size[4],
-               dt* B, uint32_t B_size[3],
-               dt* Z, uint32_t Z_size[3])
+void convBasic(float* X, uint32_t X_size[3],
+               float* W, uint32_t W_size[4],
+               float* B, uint32_t B_size[3],
+               float* Z, uint32_t Z_size[3])
 {
 	int in_c = X_size[0];
 	int out_c = Z_size[0];
@@ -86,7 +77,7 @@ void convBasic(dt* X, uint32_t X_size[3],
 	for (int oc = 0; oc < out_c; oc++) {
 		for (int y = 0; y < in_h - kernel_h + 1; y++) {
 			for (int x = 0; x < in_w - kernel_w + 1; x++) {
-				dt sum = 0;
+				float sum = 0;
 				for (int ic = 0; ic < in_c; ic++) {
 					for (int ky = 0; ky < kernel_h; ky++) {
 						for (int kx = 0; kx < kernel_w; kx++) {
@@ -102,10 +93,10 @@ void convBasic(dt* X, uint32_t X_size[3],
 }
 
 // Iterates in oc->ic->y->x->ky->kx order
-void convBasic2(dt* X, uint32_t X_size[3],
-               dt* W, uint32_t W_size[4],
-               dt* B, uint32_t B_size[3],
-               dt* Z, uint32_t Z_size[3])
+void convBasic2(float* X, uint32_t X_size[3],
+               float* W, uint32_t W_size[4],
+               float* B, uint32_t B_size[3],
+               float* Z, uint32_t Z_size[3])
 {
 	int in_c = X_size[0];
 	int out_c = Z_size[0];
@@ -122,10 +113,10 @@ void convBasic2(dt* X, uint32_t X_size[3],
 			}
 		}
 		for (int ic = 0; ic < in_c; ic++) {
-			dt * sums = new dt[out_h * out_w](); // the sums for one input channel, zero-init
+			float * sums = new float[out_h * out_w](); // the sums for one input channel, zero-init
 			for (int y = 0; y < out_h; y++) {
 				for (int x = 0; x < out_w; x++) {
-					dt sum = 0; // Sum for one input channel for one kernel application/output pixel
+					float sum = 0; // Sum for one input channel for one kernel application/output pixel
 					for (int ky = 0; ky < kernel_h; ky++) {
 						for (int kx = 0; kx < kernel_w; kx++) {
 							sum += X[ic*in_h*in_w+(y+ky)*in_w+x+kx] *
@@ -145,10 +136,10 @@ void convBasic2(dt* X, uint32_t X_size[3],
 }
 
 // Iterates in oc->y->ic->x->ky->kx order
-void convBasic3(dt* X, uint32_t X_size[3],
-               dt* W, uint32_t W_size[4],
-               dt* B, uint32_t B_size[3],
-               dt* Z, uint32_t Z_size[3])
+void convBasic3(float* X, uint32_t X_size[3],
+               float* W, uint32_t W_size[4],
+               float* B, uint32_t B_size[3],
+               float* Z, uint32_t Z_size[3])
 {
 	int in_c = X_size[0];
 	int out_c = Z_size[0];
@@ -160,10 +151,10 @@ void convBasic3(dt* X, uint32_t X_size[3],
 	int out_w = in_w - kernel_w + 1;
 	for (int oc = 0; oc < out_c; oc++) {
 		for (int y = 0; y < out_h; y++) {
-			dt * sums = new dt[out_w](); // One row of output
+			float * sums = new float[out_w](); // One row of output
 			for (int ic = 0; ic < in_c; ic++) {
 				for (int x = 0; x < out_w; x++) {
-					dt sum = 0; // Sum for one input channel for one kernel application/output pixel
+					float sum = 0; // Sum for one input channel for one kernel application/output pixel
 					for (int ky = 0; ky < kernel_h; ky++) {
 						for (int kx = 0; kx < kernel_w; kx++) {
 							sum += X[ic*in_h*in_w+(y+ky)*in_w+x+kx] *
@@ -207,21 +198,54 @@ int readTensorSize(FILE * f, uint32_t size[3])
 }
 
 //Returns 0 on failure
-int readTensorRaw(FILE * f, dt * out, uint32_t size[3])
+int readTensorRaw(FILE * f, float * out, uint32_t size[3])
 {
 	uint32_t num_params = size[0] * size[1] * size[2];
-	if constexpr(std::is_same_v<float, dt>) {
-    	if(num_params != fread(out,sizeof(float),num_params,f))
-    		return 0;
-	} else {
-		float * temp = new float[num_params];
-    	if(num_params != fread(temp,sizeof(float),num_params,f))
-    		return 0;
-    	for(int i = 0; i < num_params; i++) {
-        	out[i] = temp[i];
-    	}
-	}
+	if(num_params != fread(out,sizeof(float),num_params,f))
+		return 0;
 	return 1;
+}
+
+//Returns 0 on failure
+int readConvRaw(float ** X, uint32_t X_size[3], float ** Ref, uint32_t Ref_size[3], float ** W, uint32_t W_size[4], float ** B, uint32_t B_size[3], FILE * f)
+{
+    uint32_t new_X_size[3];
+    if(!readTensorSize(f, new_X_size)) return 0;
+    resizeTensor(X, X_size, new_X_size, 3); 
+    if(!readTensorRaw(f, *X, X_size)) return 0;
+
+    uint32_t new_Ref_size[3];
+    if(!readTensorSize(f, new_Ref_size)) return 0;
+    resizeTensor(Ref, Ref_size, new_Ref_size, 3); 
+	if(!readTensorRaw(f, *Ref, Ref_size)) return 0;
+
+    uint32_t new_W_size[4] = {Ref_size[0]};
+    if(!readTensorSize(f, &new_W_size[1])) return 0;
+    resizeTensor(W, W_size, new_W_size, 4);
+	for(int i = 0; i < Ref_size[0] ; i++){
+    	if(i != 0) {
+        	if(!readTensorSize(f, &new_W_size[1])) return 0;
+    	}
+		if(!readTensorRaw(f, &(*W)[i*W_size[1]*W_size[2]*W_size[3]], &W_size[1])) return 0;
+	}
+
+    uint32_t new_B_size[3];
+    if(!readTensorSize(f, new_B_size)) return 0;
+    resizeTensor(B, B_size, new_B_size, 3); 
+    if(!readTensorRaw(f, *B, B_size)) return 0;
+
+	return 1;
+}
+
+FILE * openTestFile() {
+    FILE * f = fopen("data/conf_test.dat", "rb");
+    // Try to use absolute path for Vitis HLS
+    if(!f) f = fopen("/home/clyybber/projects/uni/cnnhw/final/ACCN-Homework/final_project/data/conv_test.dat","rb");
+    if(!f) f = fopen("/home/hewei/TUM/ACCN/ACCN-Homework/final_project/data/conv_test.dat", "rb");
+    if(!f) f = fopen("/home/xilinx/final/data/conv_test.dat", "rb");
+    if(!f) f = fopen("/home/xilinx/final_project/data/conv_test.dat", "rb");
+    if(!f) printf("test.dat not found\n");
+	return f;
 }
 
 #endif // common_h_INCLUDED
