@@ -7,7 +7,7 @@
 
 #define dt float
 
-#define MAX_KERNEL_SIZE 3
+#define MAX_KERNEL_SIZE 7
 #define MIN_KERNEL_SIZE 3
 #define MAX_IN_SIZE 128
 #define MAX_IN_CHANNEL 512

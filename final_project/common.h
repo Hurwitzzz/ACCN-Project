@@ -220,6 +220,7 @@ int readTensorRaw(FILE * f, dt * out, uint32_t size[3])
     	for(int i = 0; i < num_params; i++) {
         	out[i] = temp[i];
     	}
+		delete [] temp;
 	}
 	return 1;
 }
