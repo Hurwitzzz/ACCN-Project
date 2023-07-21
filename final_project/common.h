@@ -2,7 +2,6 @@
 #define common_h_INCLUDED
 
 #include "conv.h"
-
 #include <sys/time.h>
 
 struct timeval mtick(){

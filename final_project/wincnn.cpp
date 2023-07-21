@@ -1,6 +1,34 @@
 #include "conv.h"
+#include "winograd.h"
 #include <stdio.h>
 #include <cstdlib>
+
+
+
+const WINOGRAD_STRUCT * getWino(int k_size)
+{
+	const WINOGRAD_STRUCT * wino;
+	switch(k_size){
+		case 3:
+			wino = &Wino_F2_3; // Try Wino F4_3
+			break;
+		case 5:
+			wino = &Wino_F4_5;
+			break;
+		case 7:
+			wino = &Wino_F4_7;
+			break;
+		case 11:
+			wino = &Wino_F4_11;
+			break;
+		default:
+			printf("Kernel Size %d not supported by Winograd \n",k_size);
+			return NULL;
+	}
+	return wino;
+}
+
+
 
 /*-------------------------------- Winograd -------------------------------------------*/
 /* 

@@ -124,6 +124,7 @@ void allocLayers(std::vector<CNN_layer_struct> &layers)
 				break;
 			case Layer_Type::Conv: {
 #ifdef FPGA
+				printf("Using FPGA\n");
 				if(!PYNQ_allocatedSharedMemory(&lay.sm_z, lay.output_size[0] * lay.output_size[1] * lay.output_size[2] * sizeof(dt), 0)) printf("Shared alloc Z failed.\n");
 				if(!PYNQ_allocatedSharedMemory(&lay.sm_w, lay.output_size[0] * lay.input_channels * lay.kernel_width * lay.kernel_width * sizeof(dt), 0)) printf("Shared alloc W failed.\n");
 				if(!PYNQ_allocatedSharedMemory(&lay.sm_b, lay.output_size[0] * sizeof(dt), 0)) printf("Shared alloc B failed.\n");
@@ -650,6 +651,8 @@ dt * inference(std::vector<CNN_layer_struct> &layers, dt * input, double runtime
             	memcpy(hls.buffer + 0x34, &(lay.sm_z.physical_address), sizeof(size_t));
     			memcpy(hls.buffer + 0x40, &(block), sizeof(int));
 
+				printf("after memcpy\n");
+
     			/* Start HLS by setting bit */
     			// O3 MAY "OPTIMIZE" OUT THE LOOP CONDITION IF HLS_CTRL IS NOT VOLATILE
 				volatile uint32_t * hls_ctrl = (uint32_t *) hls.buffer;
@@ -747,6 +750,7 @@ void benchNet(std::vector<CNN_layer_struct> &layers,
 		printf("%s\n",images[i]);
     	//TODO: Convert to dt from float
 #if dt == fixed
+			printf("test\n");
         	float * temp = readBMP(images[i]);
     		X[i] = convertToDt(temp, 3*128*128);
     		delete [] temp;

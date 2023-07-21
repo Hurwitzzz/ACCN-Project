@@ -5,8 +5,8 @@ test: testbench.cpp conv.cpp
 	g++ $^ -o $@ -I${INC} -g -O3
 
 board: board.cpp
-	g++ $^ -o $@ -g -O3 -lpynq -lcma -lpthread
+	g++ -std=c++17 $^ -o $@ -g -O3 -lpynq -lcma -lpthread
 
 boardnet: boardnet.cpp conv.cpp inf_utils.cpp
-	g++ $^ -o $@ -g -O3 -I${INC} #-lpynq -lcma -lpthread
+	g++ -std=c++17 $^ -o $@ -g -O3 -I${INC} -lpynq -lcma -lpthread
 
